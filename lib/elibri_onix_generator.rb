@@ -872,42 +872,14 @@ module Elibri
                   tag(:RelatedProduct) do
                     tag(:ProductRelationCode, Elibri::ONIX::Dict::Release_3_0::ProductRelationType::FACSIMILES)
                     tag(:ProductIdentifier) do
-                      comment "Zawsze #{Elibri::ONIX::Dict::Release_3_0::ProductIDType::PROPRIETARY} - symbol wydawcy", :kind => :onix_related_products
+                      comment "Zawsze #{Elibri::ONIX::Dict::Release_3_0::ProductIDType::PROPRIETARY} - wewnętrzny kod elibri (record reference)", 
+                              :kind => :onix_related_products
                       tag(:ProductIDType, Elibri::ONIX::Dict::Release_3_0::ProductIDType::PROPRIETARY)
-                      tag(:IDTypeName, facsimile.publisher_name)
-                      tag(:IDValue, facsimile.publisher_symbol)
-                    end
-
-                    if facsimile.isbn_value.present?
-                      tag(:ProductIdentifier) do
-                        comment 'Zawsze ISBN-13'
-                        tag(:ProductIDType, Elibri::ONIX::Dict::Release_3_0::ProductIDType::ISBN13)
-                        tag(:IDValue, facsimile.isbn_value)
-                      end
+                      tag(:IDTypeName, "elibri")
+                      tag(:IDValue, facsimile.record_reference)
                     end
                   end  
                 end
-
-                # Nie powtarzaj w zbiorze produktów podobnych faksymili:
-                (product.similar_products - product.facsimiles).each do |similar_product|
-                  tag(:RelatedProduct) do
-                    tag(:ProductRelationCode, Elibri::ONIX::Dict::Release_3_0::ProductRelationType::SIMILAR_PRODUCTS)
-                    tag(:ProductIdentifier) do
-                      comment "Zawsze #{Elibri::ONIX::Dict::Release_3_0::ProductIDType::PROPRIETARY} - symbol wydawcy"
-                      tag(:ProductIDType, Elibri::ONIX::Dict::Release_3_0::ProductIDType::PROPRIETARY)
-                      tag(:IDTypeName, similar_product.publisher_name)
-                      tag(:IDValue, similar_product.publisher_symbol)
-                    end
-
-                    if similar_product.isbn_value.present?
-                      tag(:ProductIdentifier) do
-                        tag(:ProductIDType, Elibri::ONIX::Dict::Release_3_0::ProductIDType::ISBN13)
-                        tag(:IDValue, similar_product.isbn_value)
-                      end
-                    end
-                  end  
-                end
-
               end
             end
 
