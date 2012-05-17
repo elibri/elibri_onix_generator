@@ -228,7 +228,7 @@ module Elibri
                   end 
                   remove_tag_if_empty!(:PublishingDetail)
                   #P.23 - related products
-                  if product.facsimiles.present? or product.similar_products.present?
+                  if product.facsimiles.present? 
                     export_related_products!(product)
                   end
                   #P.24 - Market
