@@ -5,8 +5,8 @@ require "elibri_onix_generator/version"
 Gem::Specification.new do |s|
   s.name        = "elibri_onix_generator"
   s.version     = ElibriOnixGenerator::VERSION
-  s.authors     = ["Piotr Szmielew"]
-  s.email       = ["p.szmielew@beinformed.pl"]
+  s.authors     = ["Marcin Urbański", "Piotr Szmielew"]
+  s.email       = ["marcin@urbanski.vdl.pl", "p.szmielew@beinformed.pl"]
   s.homepage    = ""
   s.summary     = %q{XML Generator used by Elibri gems}
   s.description = %q{XML Generator used by Elibri gems}
