@@ -548,9 +548,9 @@ module Elibri
             # I przykład dla audiobook-a, z czasem trwania nagrania:
             # @render onix_audiobook_extent_example
             def export_extent!(product)
-              if product.kind_of_ebook? and product.file_size
+              if product.digital? and product.file_size
                 tag(:Extent) do
-                  comment 'Rozmiar pliku (w MB) - tylko dla produktów typu e-book', :kind => :onix_extent
+                  comment 'Rozmiar pliku (w MB) - tylko dla produktów cyfrowych (e-book, audiobook)', :kind => :onix_extent
                   tag(:ExtentType, Elibri::ONIX::Dict::Release_3_0::ExtentType::FILE_SIZE)
                   tag(:ExtentValue, product.file_size)
                   comment 'W MB', :kind => :onix_extent
@@ -698,7 +698,7 @@ module Elibri
             #
             #
             def export_titles!(product)
-              if product.title_parts.present? or product.or_title.present? or product.trade_title.present?
+              if product.title_parts.present? or product.original_title.present? or product.trade_title.present?
                 #comment_dictionary 'Rozróżniane typy tytułów', :TitleType, :indent => 10,  :kind => :onix_titles
               end
 
@@ -721,14 +721,14 @@ module Elibri
                   end
                 end 
               end
-              if product.or_title.present?
+              if product.original_title.present?
                 tag(:TitleDetail) do
                   comment "Tytuł w języku oryginału - #{Elibri::ONIX::Dict::Release_3_0::TitleType::DISTINCTIVE_TITLE}", :kind => :onix_titles
                   tag(:TitleType, Elibri::ONIX::Dict::Release_3_0::TitleType::ORIGINAL_TITLE)
                   tag(:TitleElement) do
                     comment "Tytuł na poziomie produktu - #{Elibri::ONIX::Dict::Release_3_0::TitleElementLevel::PRODUCT}", :kind => :onix_titles
                     tag(:TitleElementLevel, Elibri::ONIX::Dict::Release_3_0::TitleElementLevel::PRODUCT) 
-                    tag(:TitleText, product.or_title)
+                    tag(:TitleText, product.original_title)
                   end
                 end  
               end 
