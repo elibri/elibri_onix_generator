@@ -510,10 +510,10 @@ module Elibri
 
             # @hidden_tags RecordReference NotificationType ProductIdentifier DescriptiveDetail
             # @title Informacje o wydawcy
-            # W rekordzie znajduje się oczywiście nazwa wydawnictwa. Wydawca może określić też imprint.
+            # W rekordzie znajduje się oczywiście nazwa wydawnictwa. Wydawca może określić też imprint oraz miasto, w którym została wydana ksiażka.
             # Z imprintem mamy do czynienia wtedy, gdy książki są wydawane pod różnymi markami, pula ISBN jest jednak wspólna.
             # Jeśli wydawnictwo uzupełnia nazwę imprintu, to powinna być ona traktowana jako nazwa wydawnictwa przy prezentacji
-            # książki klientowi końcowemu.
+            # książki klientowi końcowemu. 
             def export_publisher_info!(product)
               if product.imprint
                 tag(:Imprint) do
@@ -533,6 +533,10 @@ module Elibri
                   end
                   tag(:PublisherName, product.publisher_name) 
                 end
+              end
+
+              if product.city_of_publication.present?
+                tag(:CityOfPublication, product.city_of_publication)
               end
             end
 
