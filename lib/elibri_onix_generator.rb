@@ -224,9 +224,11 @@ module Elibri
                   tag(:PublishingDetail) do
                     export_publisher_info!(product) #P.19
                     export_publishing_status!(product) #PR.20
+                    export_territorial_rights!(product)
                     export_sale_restrictions!(product) if product.sale_restricted? #PR.21
                   end 
                   remove_tag_if_empty!(:PublishingDetail)
+                 
                   #P.23 - related products
                   if product.facsimiles.present? 
                     export_related_products!(product)
@@ -329,46 +331,50 @@ module Elibri
                 comment_dictionary "Format produktu", :ProductFormCode, :indent => 10, :kind => [:onix_product_form, :onix_epub_details]
                 tag(:ProductForm, product.product_form_onix_code)
               end
-
-              if product.product_form_detail_onix_codes.present?
-                comment_dictionary "Dostępne formaty produktu", :ProductFormDetail, :indent => 10, :kind => :onix_epub_details
-                product.product_form_detail_onix_codes.each do |onix_code|
-                  tag(:ProductFormDetail, onix_code)
-                end
-              end
             end
 
 
             # @hidden_tags RecordReference NotificationType ProductIdentifier TitleDetail PublishingDetail ProductComposition 
             # @title Zabezpieczenia e-booków
             # <strong>&lt;EpubTechnicalProtection&gt;</strong> Określa typ zabezpieczenia stosowanego przy publikacji e-booka.<br/>
+            # 
             # <strong>&lt;ProductFormDetail&gt;</strong> zawiera format w jakim rozprowadzany jest e-book.
             # Aktualnie może przyjąć wartości takie jak:
             # #{Elibri::ONIX::Dict::Release_3_0::ProductFormDetail::ALL.map(&:name).to_sentence(:last_word_connector => ' lub ')}
-            # <br/><br/>
-            # Jeśli e-book posiada terminowe ograniczenie sprzedaży, <strong>&lt;EpubUsageType&gt;</strong> zawiera wartość <strong>07</strong>.
-            # Ilość dni po których licencja wygasa znajduje się w tagu <strong>&lt;Quantity&gt;</strong> wewnątrz <strong>&lt;EpubUsageLimit&gt;</strong>
             def export_epub_details!(product)
-              return unless product.kind_of_ebook?
-              if product.epub_technical_protection
-                comment_dictionary "Zabezpieczenie", :EpubTechnicalProtection, :indent => 10, :kind => :onix_epub_details
-                tag(:EpubTechnicalProtection, product.epub_technical_protection_onix_code)
+              if product.product_form_detail_onix_codes.present? #lista 175
+                comment_dictionary "Dostępne formaty produktu", :ProductFormDetail, :indent => 10, :kind => :onix_epub_details
+                product.product_form_detail_onix_codes.each do |onix_code|
+                  tag(:ProductFormDetail, onix_code)
+                end
               end
 
-              tag(:EpubUsageConstraint) do
-                comment_dictionary "Ograniczenia", :EpubUsageType, :indent => 12, :kind => :onix_epub_details
-                tag(:EpubUsageType, Elibri::ONIX::Dict::Release_3_0::EpubUsageType::TIME_LIMITED) 
-                if product.epub_sale_restricted_to.present?
-                  comment_dictionary "Obecność limitu", :EpubUsageStatus, :indent => 12, :kind => :onix_epub_details
-                  tag(:EpubUsageStatus, Elibri::ONIX::Dict::Release_3_0::EpubUsageStatus::LIMITED) 
-                  tag(:EpubUsageLimit) do
-                    days_left = Date.parse(product.epub_sale_restricted_to.to_s) - Date.today
-                    tag(:Quantity, days_left) 
-                    comment_dictionary "Jednostka limitu", :EpubUsageUnit, :indent => 12, :kind => :onix_epub_details
-                    tag(:EpubUsageUnit, Elibri::ONIX::Dict::Release_3_0::EpubUsageUnit::DAYS) 
+              if product.digital?
+                if product.epub_technical_protection
+                  comment_dictionary "Zabezpieczenie", :EpubTechnicalProtection, :indent => 10, :kind => :onix_epub_details
+                  tag(:EpubTechnicalProtection, product.epub_technical_protection_onix_code)
+                end
+                
+                if product.epub_fragment_info?
+                  tag(:EpubUsageConstraint) do
+                    comment_dictionary "Rodzaj ograniczeniai - w tym przypadku zawsze dotyczy dostępności fragmentu książki", 
+                                       :EpubUsageType, :indent => 12, :kind => :onix_epub_details
+                    tag(:EpubUsageType, Elibri::ONIX::Dict::Release_3_0::EpubUsageType::PREVIEW) 
+                    
+                    comment_dictionary "Jaka jest decyzja wydawcy?", :EpubUsageStatus, :indent => 12, :kind => :onix_epub_details
+                    tag(:EpubUsageStatus, product.epub_publication_preview_usage_status_onix_code)
+                    if product.epub_publication_preview_usage_status_onix_code == Elibri::ONIX::Dict::Release_3_0::EpubUsageStatus::LIMITED
+                      tag(:EpubUsageLimit) do
+                        if product.epub_publication_preview_unit_onix_code == Elibri::ONIX::Dict::Release_3_0::EpubUsageUnit::PERCENTAGE
+                          tag(:Quantity, product.epub_publication_preview_percentage_limit)
+                        elsif product.epub_publication_preview_unit_onix_code == Elibri::ONIX::Dict::Release_3_0::EpubUsageUnit::CHARACTERS
+                          tag(:Quantity, product.epub_publication_preview_characters_limit)
+                        end
+                        comment_dictionary "Jednostka limitu", :EpubUsageUnit, :indent => 12, :kind => :onix_epub_details
+                        tag(:EpubUsageUnit, product.epub_publication_preview_unit_onix_code)
+                      end
+                    end
                   end
-                else
-                  tag(:EpubUsageStatus, Elibri::ONIX::Dict::Release_3_0::EpubUsageStatus::UNLIMITED) 
                 end
               end
             end
@@ -454,6 +460,21 @@ module Elibri
                   comment_dictionary "Format daty", :DateFormat, :indent => 12, :kind => :onix_publishing_status
                   tag(:DateFormat, format_code)  #lista 55
                   tag(:Date, date)
+                end
+              end
+            end
+
+            # @hidden_tags RecordReference NotificationType ProductIdentifier DescriptiveDetail
+            # @title Terytorialne ograniczenia sprzedaży
+            def export_territorial_rights!(product)
+              tag(:SalesRights) do
+                tag(:SalesRightsType, "01") #For sale with exclusive rights in the specified country/ies
+                tag(:Territory) do
+                  if product.sale_restricted_to_poland?
+                    tag(:CountriesIncluded, "PL")
+                  else
+                    tag(:RegionsIncluded, "WORLD")
+                  end
                 end
               end
             end
@@ -987,6 +1008,13 @@ module Elibri
                 tag("elibri:Vat", product.vat) if product.vat.present?
                 tag("elibri:PKWiU", product.pkwiu) if product.pkwiu.present?
                 tag("elibri:preview_exists", product.preview_exists?.to_s)
+                if product.digital?
+                  if product.epub_sale_not_restricted? || product.epub_sale_restricted_to.nil?
+                    tag("elibri:SaleNotRestricted")
+                  else
+                    tag("elibri:SaleRestrictedTo", product.epub_sale_restricted_to.strftime("%Y%m%d"))
+                  end
+                end
               end
             end
 
