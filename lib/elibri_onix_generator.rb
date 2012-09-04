@@ -10,7 +10,7 @@ module Elibri
 
       SHORT_TAGS = YAML::load_file(File.dirname(__FILE__) + "/xml_tags.yml")
       DOC_ORDER = ["record_identifiers", "publishing_status", "product_form", "contributors", "titles", "series_memberships", "measurement", 
-                    "sale_restrictions", "audience_range", "publisher_info", "extent", "edition", "languages", "epub_details",
+                    "sale_restrictions", "territorial_rights", "audience_range", "publisher_info", "extent", "edition", "languages", "epub_details",
                     "texts", "supporting_resources", "subjects", "elibri_extensions"]
                   #"related_products", "supply_details"
 
@@ -328,19 +328,36 @@ module Elibri
               tag(:ProductComposition, '00') #lista 2 - Single-item retail product  
 
               if product.product_form_onix_code
-                comment_dictionary "Format produktu", :ProductFormCode, :indent => 10, :kind => [:onix_product_form, :onix_epub_details]
+                comment_dictionary "Format produktu", :ProductFormCode, :indent => 10, :kind => [:onix_product_form]
                 tag(:ProductForm, product.product_form_onix_code)
               end
             end
 
 
             # @hidden_tags RecordReference NotificationType ProductIdentifier TitleDetail PublishingDetail ProductComposition 
-            # @title Zabezpieczenia e-booków
+            # @title E-booki 
             # <strong>&lt;EpubTechnicalProtection&gt;</strong> Określa typ zabezpieczenia stosowanego przy publikacji e-booka.<br/>
             # 
             # <strong>&lt;ProductFormDetail&gt;</strong> zawiera format w jakim rozprowadzany jest e-book.
             # Aktualnie może przyjąć wartości takie jak:
-            # #{Elibri::ONIX::Dict::Release_3_0::ProductFormDetail::ALL.map(&:name).to_sentence(:last_word_connector => ' lub ')}
+            # #{Elibri::ONIX::Dict::Release_3_0::ProductFormDetail::ALL.map(&:name).to_sentence(:last_word_connector => ' lub ')}<br/>
+            # 
+            # @render onix_epub_details_example
+            #
+            # Wydawca może również umieścić informacje o tym, czy pozwala na publikację fragmentu książki, a jeśli tak,
+            # to czy narzuca ograniczenie co do wielkości fragmentu (w ilości znaków albo procentowo). Ta informacja ma tylko wtedy 
+            # znaczenie, gdy dystrybutor samodzielnie dokonuje konwersji, a tym samym tworzy ebooka z fragmentem publikacji. 
+            # Wydawnictwa, które samodzielnie konwertują książki nie będą publikować tej informacji.<br/>
+            # @render onix_unlimited_book_sample_example
+            # @render onix_prohibited_book_sample_example
+            # @render onix_limited_book_sample_example
+            # <br/>
+            # Wydawnictwa podają też w systemie eLibri informację, czy prawo do sprzedaży ebook-a jest bezterminowe.
+            # W takim przypadku w opisie produktu wystąpi pusty tag <strong>&lt;elibri:SaleNotRestricted&gt;</strong> (ostatnie trzy przykłady).<br/><br/>
+            # Jeśli wydawca posiada licencję na określony czas, to w opisie produktu wystąpi tag 
+            # <strong>&lt;elibri:SaleRestrictedTo&gt;</strong>, w którym będzie podana data wygaśnięcia licencji (w formacie YYYYMMDD).
+            # Przykład użycia w pierwszym przykładzie.
+            # 
             def export_epub_details!(product)
               if product.product_form_detail_onix_codes.present? #lista 175
                 comment_dictionary "Dostępne formaty produktu", :ProductFormDetail, :indent => 10, :kind => :onix_epub_details
@@ -348,7 +365,7 @@ module Elibri
                   tag(:ProductFormDetail, onix_code)
                 end
               end
-
+               
               if product.digital?
                 if product.epub_technical_protection
                   comment_dictionary "Zabezpieczenie", :EpubTechnicalProtection, :indent => 10, :kind => :onix_epub_details
@@ -357,8 +374,7 @@ module Elibri
                 
                 if product.epub_fragment_info?
                   tag(:EpubUsageConstraint) do
-                    comment_dictionary "Rodzaj ograniczeniai - w tym przypadku zawsze dotyczy dostępności fragmentu książki", 
-                                       :EpubUsageType, :indent => 12, :kind => :onix_epub_details
+                    comment "Rodzaj ograniczenia - w tym przypadku zawsze dotyczy dostępności fragmentu książki", :indent => 12, :kind => :onix_epub_details
                     tag(:EpubUsageType, Elibri::ONIX::Dict::Release_3_0::EpubUsageType::PREVIEW) 
                     
                     comment_dictionary "Jaka jest decyzja wydawcy?", :EpubUsageStatus, :indent => 12, :kind => :onix_epub_details
@@ -464,11 +480,15 @@ module Elibri
               end
             end
 
-            # @hidden_tags RecordReference NotificationType ProductIdentifier DescriptiveDetail
-            # @title Terytorialne ograniczenia sprzedaży
+            # @hidden_tags RecordReference NotificationType ProductIdentifier DescriptiveDetail Publisher PublishingStatus
+            # @title Terytorialne ograniczenia sprzedaży.
+            # W tej chwili w systemie eLibri można zastrzec, że sprzedaż książek/ebooków jest ograniczona do terenu Polski,
+            # albo pozwolić na sprzedaż na całym świecie. Poniżej dwa przykłady, jeden dla wyłączości na terenie Polski, drugi
+            # dopuszczający sprzedaż na całym świecie. Informacja o ograniczeniu jest zawarta w obręcie <strong>&lt;SalesRights&gt;</strong>
             def export_territorial_rights!(product)
               tag(:SalesRights) do
-                tag(:SalesRightsType, "01") #For sale with exclusive rights in the specified country/ies
+                comment "Typ restrykcji - sprzedaż tylko w wymienionym kraju, regionie, zawsze '01'", :kind => :onix_territorial_rights
+                tag(:SalesRightsType, "01") 
                 tag(:Territory) do
                   if product.sale_restricted_to_poland?
                     tag(:CountriesIncluded, "PL")
