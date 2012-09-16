@@ -1035,6 +1035,9 @@ module Elibri
                     tag("elibri:SaleRestrictedTo", product.epub_sale_restricted_to.strftime("%Y%m%d"))
                   end
                 end
+                if product.isbn
+                  tag("elibri:HyphenatedISBN", product.isbn.human_value)
+                end
               end
             end
 
