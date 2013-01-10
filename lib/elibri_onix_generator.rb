@@ -580,6 +580,8 @@ module Elibri
 
           if product.city_of_publication.present?
             tag(:CityOfPublication, product.city_of_publication)
+          elsif product.publisher.city.present?
+            tag(:CityOfPublication, product.publisher.city)
           end
         end
 
