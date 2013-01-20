@@ -942,7 +942,7 @@ module Elibri
         # identyfikatorów produktu. Poza podstawowym <strong>&lt;ProductIdentifier&gt;</strong>, znajdują się także identyfikatory
         # poszczególnych dostawców. Tag <strong>&lt;IDTypeName&gt;</strong> zawiera nazwę dostawcy.
         def export_supply_details!(product)
-          return if product.try(:skip_ProductSupply)
+          return if product.respond_to?(:skip_ProductSupply) && product.skip_ProductSupply
           unless product.product_availabilities.empty?
             tag(:ProductSupply) do
               product.product_availabilities.each do |pa|
