@@ -1043,6 +1043,25 @@ module Elibri
             if product.isbn
               tag("elibri:HyphenatedISBN", product.isbn.human_value)
             end
+
+            if product.digital?
+              if product.excerpts.present? 
+                 tag("elibri:excerpts") do      
+                   product.excerpts.each do |excerpt|
+                     tag("elibri:excerpt", "https://www.elibri.com.pl/excerpt/#{excerpt.id}", :md5 => excerpt.file_md5, :file_size => excerpt.stored_file_size,
+                                           :file_type => excerpt.file_type, :updated_at => excerpt.stored_updated_at.to_datetime.xmlschema, :id => excerpt.id)
+                   end
+                 end
+              end
+              if product.masters.present?
+                tag("elibri:masters") do
+                  product.masters.each do |sf|
+                    tag("elibri:master", :id => sf.id, :md5 => sf.file_md5, :file_size => sf.stored_file_size,
+                                         :file_type => sf.file_type, :updated_at => sf.stored_updated_at.to_datetime.xmlschema)
+                  end
+                end
+              end
+            end
           end
         end
 
