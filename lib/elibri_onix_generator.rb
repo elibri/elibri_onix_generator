@@ -655,13 +655,14 @@ module Elibri
           end
 
           # Kategorie wg. wydawnictwa
-          #product.publisher_product_categories.each do |product_category|
-          #  tag(:Subject) do
-          #    tag(:SubjectSchemeIdentifier, Elibri::ONIX::Dict::Release_3_0::SubjectSchemeIdentifier::PROPRIETARY)
-          #    tag(:SubjectSchemeName, product.publisher_name)
-          #    tag(:SubjectHeadingText, product_category.name)
-          #  end
-          #end
+          product.publisher_product_categories.each do |product_category|
+            tag(:Subject) do
+              tag(:SubjectSchemeIdentifier, Elibri::ONIX::Dict::Release_3_0::SubjectSchemeIdentifier::PROPRIETARY)
+              tag(:SubjectSchemeName, product.publisher_name)
+              tag(:SubjectCode, product_category.id)
+              tag(:SubjectHeadingText, product_category.name)
+            end
+          end
         end
 
 
