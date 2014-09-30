@@ -481,13 +481,12 @@ module Elibri
             end
           end
 
-          distribution_start = product.product_distribution_start
-          if distribution_start
+          if product.distribution_start
             tag(:PublishingDate) do
               comment "Jeśli 27 - to data początku przyjmowania zamówień na dany tytuł"
               tag(:PublishingDateRole, Elibri::ONIX::Dict::Release_3_0::PublishingDateRole::PREORDER_EMBARGO_DATE) #lista 163
               tag(:DateFormat, Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDD)
-              tag(:Date, distribution_start.strftime("%Y%m%d"))
+              tag(:Date, product.distribution_start.strftime("%Y%m%d"))
             end
           end
         end
