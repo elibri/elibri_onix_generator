@@ -567,10 +567,10 @@ module Elibri
         # Jeśli wydawnictwo uzupełnia nazwę imprintu, to powinna być ona traktowana jako nazwa wydawnictwa przy prezentacji
         # książki klientowi końcowemu. 
         def export_publisher_info!(product)
-          if product.imprint
+          if product.imprint_for_onix
             tag(:Imprint) do
               comment "Nazwa imprintu", :kind => :onix_publisher_info
-              tag(:ImprintName, product.imprint.name)
+              tag(:ImprintName, product.imprint_for_onix.name)
             end
           end
 
@@ -581,9 +581,9 @@ module Elibri
               tag(:PublisherIdentifier) do
                 tag(:PublisherIDType, '01') #prioprietary
                 tag(:IDTypeName, 'ElibriPublisherCode')
-                tag(:IDValue, product.publisher_id)
+                tag(:IDValue, product.publisher_id_for_onix)
               end
-              tag(:PublisherName, product.publisher_name) 
+              tag(:PublisherName, product.publisher_name_for_onix) 
             end
           end
 
