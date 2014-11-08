@@ -900,13 +900,13 @@ module Elibri
         # Oprócz nazwy serii może zostać również podany numer wewnątrz serii, jeśli seria jest numerowana.
         # Książka może należeć do kilku serii, wtedy tag <strong>&lt;Collection&gt;</strong> występuje kilkukrotnie.
         def export_series_memberships!(product)
-          if product.series_membership_kind.user_given? 
-            product.series_memberships.each_with_index do |series_membership, idx|
+          if product.series_membership_kind.user_given? || product.collection_with_issn
+            (product.series_memberships + [product.collection_with_issn]).compact.each_with_index do |series_membership, idx|
               tag(:Collection) do
                 comment "Używamy tylko #{Elibri::ONIX::Dict::Release_3_0::CollectionType::PUBLISHER_COLLECTION} - seria wydawnictwa", :kind => :onix_series_memberships
                 tag(:CollectionType, Elibri::ONIX::Dict::Release_3_0::CollectionType::PUBLISHER_COLLECTION) #lista 148
 
-                if series_membership.issn.present?
+                if series_membership.respond_to?(:issn) && series_membership.issn.present?
                   comment "W przypadku prasy serializowany jest numer ISSN"
                   tag(:CollectionIdentifier) do
                     tag(:CollectionIDType, "02") #issn - lista 13
