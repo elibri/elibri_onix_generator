@@ -905,6 +905,14 @@ module Elibri
               tag(:Collection) do
                 comment "Używamy tylko #{Elibri::ONIX::Dict::Release_3_0::CollectionType::PUBLISHER_COLLECTION} - seria wydawnictwa", :kind => :onix_series_memberships
                 tag(:CollectionType, Elibri::ONIX::Dict::Release_3_0::CollectionType::PUBLISHER_COLLECTION) #lista 148
+
+                if series_membership.issn.present?
+                  comment "W przypadku prasy serializowany jest numer ISSN"
+                  tag(:CollectionIdentifier) do
+                    tag(:CollectionIDType, "02") #issn - lista 13
+                    tag(:IDValue, series_membership.issn)
+                  end
+                end
                 comment "Teraz następuje podobna struktura, jak w przypadku tytułu", :kind => :onix_series_memberships
                 tag(:TitleDetail) do
                   comment "Używamy tylko #{Elibri::ONIX::Dict::Release_3_0::TitleType::DISTINCTIVE_TITLE}", :kind => :onix_series_memberships
