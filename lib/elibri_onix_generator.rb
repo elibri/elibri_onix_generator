@@ -304,6 +304,14 @@ module Elibri
             end
           end
 
+          if product.external_identifier
+            tag(:ProductIdentifier) do
+              tag(:ProductIDType, Elibri::ONIX::Dict::Release_3_0::ProductIDType::PROPRIETARY) #lista 5
+              tag(:IDTypeName, product.external_identifier.type_name)
+              tag(:IDValue, product.external_identifier.value)
+            end
+          end
+
           if @xml_variant.includes_stocks?
             product.product_availabilities.each do |pa|
               if pa.supplier_identifier.present?
