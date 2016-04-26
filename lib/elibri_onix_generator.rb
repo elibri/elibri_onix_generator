@@ -724,7 +724,7 @@ module Elibri
                 comment_dictionary 'Rola autora', :ContributorRole, :indent => 10, :kind => :onix_contributors
                 tag(:ContributorRole, contributor.role_onix_code) #lista 17
                 comment 'Tylko w przypadku tłumaczy:', :kind => :onix_contributors
-                tag(:FromLanguage, contributor.language_onix_code) if contributor.language_onix_code
+                tag(:FromLanguage, contributor.language_onix_code) if contributor.language_onix_code.present?
                 tag(:PersonName, contributor.generated_full_name) #zawsze jest TODO - dodać takie pole do bazy danych
 
                 tag(:TitlesBeforeNames, contributor.title) if contributor.title.present? #tytuł
