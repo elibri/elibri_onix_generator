@@ -206,7 +206,7 @@ module Elibri
                   export_languages!(product) #PR.10
                   export_extent!(product) #PR.11
                   export_subjects!(product) #PR.12
-                  export_audience_range!(product) if product.audience_range_present? #PR.13
+                  export_audience_range!(product) if product.respond_to?(:audience_range_present?) && product.audience_range_present? #PR.13
                 end 
               end
               if @xml_variant.includes_other_texts? || @xml_variant.includes_media_files?
@@ -227,12 +227,12 @@ module Elibri
                 export_publisher_info!(product) #P.19
                 export_publishing_status!(product) #PR.20
                 export_territorial_rights!(product)
-                export_sale_restrictions!(product) if product.sale_restricted? #PR.21
+                export_sale_restrictions!(product) if product.respond_to?(:sale_restricted?) && product.sale_restricted? #PR.21
               end 
               remove_tag_if_empty!(:PublishingDetail)
              
               #P.23 - related products
-              if product.facsimiles.present? 
+              if product.respond_to?(:facsimiles) && product.facsimiles.present? 
                 export_related_products!(product)
               end
               #P.24 - Market
@@ -287,7 +287,7 @@ module Elibri
             tag(:DeletionText, product.deletion_text)
           end
 
-          if product.isbn_value
+          if product.respond_to?(:isbn_value) && product.isbn_value
             comment 'ISBN', :kind => :onix_record_identifiers
             tag(:ProductIdentifier) do
               tag(:ProductIDType, Elibri::ONIX::Dict::Release_3_0::ProductIDType::ISBN13) #lista 5
@@ -295,7 +295,7 @@ module Elibri
             end
           end
 
-          if product.ean.present? && product.ean != product.isbn_value
+          if product.respond_to?(:ean) && product.ean.present? && product.ean != product.isbn_value
             comment 'EAN-13 - gdy inny niż ISBN', :kind => :onix_record_identifiers
 
             tag(:ProductIdentifier) do
@@ -304,7 +304,7 @@ module Elibri
             end
           end
 
-          if product.external_identifier
+          if product.respond_to?(:external_identifier) && product.external_identifier
             tag(:ProductIdentifier) do
               tag(:ProductIDType, Elibri::ONIX::Dict::Release_3_0::ProductIDType::PROPRIETARY) #lista 5
               tag(:IDTypeName, product.external_identifier.type_name)
@@ -313,13 +313,15 @@ module Elibri
           end
 
           if @xml_variant.includes_stocks?
-            product.product_availabilities.each do |pa|
-              if pa.supplier_identifier.present?
-                comment "Identyfikator dostawcy: #{pa.supplier.name}", :kind => :onix_record_identifiers
-                tag(:ProductIdentifier) do
-                  tag(:ProductIDType, Elibri::ONIX::Dict::Release_3_0::ProductIDType::PROPRIETARY) #lista 5
-                  tag(:IDTypeName, pa.supplier.name)
-                  tag(:IDValue, pa.supplier_identifier)
+            if product.respond_to?(:product_availabilities) 
+              product.product_availabilities.each do |pa|
+                if pa.supplier_identifier.present?
+                  comment "Identyfikator dostawcy: #{pa.supplier.name}", :kind => :onix_record_identifiers
+                  tag(:ProductIdentifier) do
+                    tag(:ProductIDType, Elibri::ONIX::Dict::Release_3_0::ProductIDType::PROPRIETARY) #lista 5
+                    tag(:IDTypeName, pa.supplier.name)
+                    tag(:IDValue, pa.supplier_identifier)
+                  end
                 end
               end
             end
@@ -369,14 +371,14 @@ module Elibri
         # Przykład użycia w pierwszym przykładzie.
         # 
         def export_epub_details!(product)
-          if product.product_form_detail_onix_codes.present? #lista 175
+          if product.respond_to?(:product_form_detail_onix_codes) && product.product_form_detail_onix_codes.present? #lista 175
             comment_dictionary "Dostępne formaty produktu", :ProductFormDetail, :indent => 10, :kind => :onix_epub_details
             product.product_form_detail_onix_codes.each do |onix_code|
               tag(:ProductFormDetail, onix_code)
             end
           end
            
-          if product.digital?
+          if product.respond_to?(:digital?) && product.digital?
             if product.epub_technical_protection
               comment_dictionary "Zabezpieczenie", :EpubTechnicalProtection, :indent => 10, :kind => :onix_epub_details
               tag(:EpubTechnicalProtection, product.epub_technical_protection_onix_code)
@@ -411,25 +413,26 @@ module Elibri
         # Następujące atrybuty są udostępniane:  wysokość, szerokość, grubość oraz masę produktu. Pierwsze trzy podajemy zawsze w milimetrach, masę w gramach.
         # W przypadku map eksportujemy również jej skalę w tagu &lt;MapScale&gt;
         def export_measurement!(product)
-          return unless product.kind_of_measurable?
-          [[product.height,    Elibri::ONIX::Dict::Release_3_0::MeasureType::HEIGHT, Product::HEIGHT_UNIT, 'Wysokość'],
-           [product.width,     Elibri::ONIX::Dict::Release_3_0::MeasureType::WIDTH, Product::WIDTH_UNIT, 'Szerokość'],
-           [product.thickness, Elibri::ONIX::Dict::Release_3_0::MeasureType::THICKNESS, Product::THICKNESS_UNIT, 'Grubość'],
-           [product.weight,    Elibri::ONIX::Dict::Release_3_0::MeasureType::WEIGHT, Product::WEIGHT_UNIT, 'Masa']
-          ].each do |value, measure_type_code, unit_code, name|
-             if value
-               tag(:Measure) do
-                 comment "#{name}: #{value}#{unit_code}", :kind => :onix_measurement
-                 tag(:MeasureType, measure_type_code) #lista 48
-                 tag(:Measurement, value)
-                 tag(:MeasureUnitCode, unit_code)
+          if product.respond_to?(:kind_of_measurable?) && product.kind_of_measurable?
+            [[product.height,    Elibri::ONIX::Dict::Release_3_0::MeasureType::HEIGHT, Product::HEIGHT_UNIT, 'Wysokość'],
+             [product.width,     Elibri::ONIX::Dict::Release_3_0::MeasureType::WIDTH, Product::WIDTH_UNIT, 'Szerokość'],
+             [product.thickness, Elibri::ONIX::Dict::Release_3_0::MeasureType::THICKNESS, Product::THICKNESS_UNIT, 'Grubość'],
+             [product.weight,    Elibri::ONIX::Dict::Release_3_0::MeasureType::WEIGHT, Product::WEIGHT_UNIT, 'Masa']
+            ].each do |value, measure_type_code, unit_code, name|
+               if value
+                 tag(:Measure) do
+                   comment "#{name}: #{value}#{unit_code}", :kind => :onix_measurement
+                   tag(:MeasureType, measure_type_code) #lista 48
+                   tag(:Measurement, value)
+                   tag(:MeasureUnitCode, unit_code)
+                 end
                end
-             end
-          end
+            end
 
-          if product.kind_of_map? and product.map_scale
-            comment 'Skala mapy - tylko dla produktów typu mapa'
-            tag(:MapScale, product.map_scale)
+            if product.respond_to?(:kind_of_map?) && product.respond_to?(:map_scale) && product.kind_of_map? and product.map_scale
+              comment 'Skala mapy - tylko dla produktów typu mapa'
+              tag(:MapScale, product.map_scale)
+            end
           end
         end
 
@@ -489,7 +492,7 @@ module Elibri
             end
           end
 
-          if product.distribution_start
+          if product.respond_to?(:distribution_start) && product.distribution_start
             tag(:PublishingDate) do
               comment "Jeśli 27 - to data początku przyjmowania zamówień na dany tytuł"
               tag(:PublishingDateRole, Elibri::ONIX::Dict::Release_3_0::PublishingDateRole::PREORDER_EMBARGO_DATE) #lista 163
@@ -505,14 +508,16 @@ module Elibri
         # albo pozwolić na sprzedaż na całym świecie. Poniżej dwa przykłady, jeden dla wyłączości na terenie Polski, drugi
         # dopuszczający sprzedaż na całym świecie. Informacja o ograniczeniu jest zawarta w obręcie <strong>&lt;SalesRights&gt;</strong>
         def export_territorial_rights!(product)
-          tag(:SalesRights) do
-            comment "Typ restrykcji - sprzedaż tylko w wymienionym kraju, regionie, zawsze '01'", :kind => :onix_territorial_rights
-            tag(:SalesRightsType, "01") 
-            tag(:Territory) do
-              if product.sale_restricted_to_poland?
-                tag(:CountriesIncluded, "PL")
-              else
-                tag(:RegionsIncluded, "WORLD")
+          if product.respond_to?(:sale_restricted_to_poland?)
+            tag(:SalesRights) do
+              comment "Typ restrykcji - sprzedaż tylko w wymienionym kraju, regionie, zawsze '01'", :kind => :onix_territorial_rights
+              tag(:SalesRightsType, "01") 
+              tag(:Territory) do
+                if product.sale_restricted_to_poland?
+                  tag(:CountriesIncluded, "PL")
+                else
+                  tag(:RegionsIncluded, "WORLD")
+                end
               end
             end
           end
@@ -575,14 +580,14 @@ module Elibri
         # Jeśli wydawnictwo uzupełnia nazwę imprintu, to powinna być ona traktowana jako nazwa wydawnictwa przy prezentacji
         # książki klientowi końcowemu. 
         def export_publisher_info!(product)
-          if product.imprint_for_onix
+          if product.respond_to?(:imprint_for_onix) && product.imprint_for_onix
             tag(:Imprint) do
               comment "Nazwa imprintu", :kind => :onix_publisher_info
               tag(:ImprintName, product.imprint_for_onix.name)
             end
           end
 
-          if product.publisher_name
+          if product.respond_to?(:publisher_name) && product.publisher_name
             tag(:Publisher) do
               comment "Wydawca - używamy tylko kodu 01 (główny wydawca)", :kind => :onix_publisher_info
               tag(:PublishingRole, '01') # Publisher, lista 45 #TODO jeszcze może być współwydawca
@@ -595,9 +600,9 @@ module Elibri
             end
           end
 
-          if product.city_of_publication.present?
+          if product.respond_to?(:city_of_publication) && product.city_of_publication.present?
             tag(:CityOfPublication, product.city_of_publication)
-          elsif product.publisher.city.present?
+          elsif product.respond_to?(:publisher) && product.publisher.city.present?
             tag(:CityOfPublication, product.publisher.city)
           end
         end
@@ -614,7 +619,7 @@ module Elibri
         # I przykład dla audiobook-a, z czasem trwania nagrania:
         # @render onix_audiobook_extent_example
         def export_extent!(product)
-          if product.digital? and product.file_size
+          if product.respond_to?(:digital?) && product.respond_to?(:file_size) && product.digital? and product.file_size
             tag(:Extent) do
               comment 'Rozmiar pliku (w MB) - tylko dla produktów cyfrowych (e-book, audiobook)', :kind => :onix_extent
               tag(:ExtentType, Elibri::ONIX::Dict::Release_3_0::ExtentType::FILE_SIZE)
@@ -624,7 +629,7 @@ module Elibri
             end
           end
 
-          if product.kind_of_audio? and product.duration
+          if product.respond_to?(:kind_of_audio?) && product.respond_to?(:duration) && product.kind_of_audio? and product.duration
             tag(:Extent) do
               comment 'Czas trwania (w minutach) - tylko dla produktów typu audio', :kind => :onix_extent
               tag(:ExtentType, Elibri::ONIX::Dict::Release_3_0::ExtentType::DURATION)
@@ -634,7 +639,8 @@ module Elibri
             end
           end
 
-          if (product.kind_of_book? or product.kind_of_ebook?) && product.number_of_pages #number_of_pages to int
+          if product.respond_to?(:kind_of_book?) && product.respond_to?(:kind_of_ebook?) && product.respond_to?(:number_of_pages) && 
+             (product.kind_of_book? or product.kind_of_ebook?) && product.number_of_pages #number_of_pages to int
             tag(:Extent) do
               comment 'Liczba stron - tylko dla produktów typu książka', :kind => :onix_extent
               tag(:ExtentType, Elibri::ONIX::Dict::Release_3_0::ExtentType::PAGE_COUNT) 
@@ -642,8 +648,8 @@ module Elibri
               tag(:ExtentUnit, Elibri::ONIX::Dict::Release_3_0::ExtentUnit::PAGES)
             end
           end
-
-          if (product.kind_of_book? or product.kind_of_ebook?) and product.number_of_illustrations 
+          if product.respond_to?(:kind_of_book?) && product.respond_to?(:kind_of_ebook?) && product.respond_to?(:number_of_illustrations) && 
+             (product.kind_of_book? or product.kind_of_ebook?) and product.number_of_illustrations 
             comment 'Liczba ilustracji - tylko dla produktów typu książka', :kind => :onix_extent
             tag(:NumberOfIllustrations, product.number_of_illustrations) 
           end
@@ -655,29 +661,30 @@ module Elibri
         # eLibri stosuje wewnętrzną hierarchę kategorii, ich lista dostępna jest
         # = link_to "tutaj", doc_api_path("categories")
         def export_subjects!(product)
-          if product.elibri_product_categories.present? or product.publisher_product_categories.present?
-            comment 'Stosujemy wewnętrzną kategoryzację.'
-          end
 
           # Kategorie wg. eLibri
-          product.elibri_product_categories.each_with_index do |product_category, i|
-            tag(:Subject) do
-              tag(:MainSubject) if i.zero?
-              tag(:SubjectSchemeIdentifier, Elibri::ONIX::Dict::Release_3_0::SubjectSchemeIdentifier::PROPRIETARY)
-              tag(:SubjectSchemeName, 'elibri.com.pl')
-              tag(:SubjectSchemeVersion, '1.0')
-              tag(:SubjectCode, product_category.id)
-              tag(:SubjectHeadingText, product_category.full_node_path_name)
+          if product.respond_to?(:elibri_product_categories)
+            product.elibri_product_categories.each_with_index do |product_category, i|
+              tag(:Subject) do
+                tag(:MainSubject) if i.zero?
+                tag(:SubjectSchemeIdentifier, Elibri::ONIX::Dict::Release_3_0::SubjectSchemeIdentifier::PROPRIETARY)
+                tag(:SubjectSchemeName, 'elibri.com.pl')
+                tag(:SubjectSchemeVersion, '1.0')
+                tag(:SubjectCode, product_category.id)
+                tag(:SubjectHeadingText, product_category.full_node_path_name)
+              end
             end
           end
 
           # Kategorie wg. wydawnictwa
-          product.publisher_product_categories.each do |product_category|
-            tag(:Subject) do
-              tag(:SubjectSchemeIdentifier, Elibri::ONIX::Dict::Release_3_0::SubjectSchemeIdentifier::PROPRIETARY)
-              tag(:SubjectSchemeName, product.publisher_name)
-              tag(:SubjectCode, product_category.id)
-              tag(:SubjectHeadingText, product_category.name)
+          if product.respond_to?(:publisher_product_categories)
+            product.publisher_product_categories.each do |product_category|
+              tag(:Subject) do
+                tag(:SubjectSchemeIdentifier, Elibri::ONIX::Dict::Release_3_0::SubjectSchemeIdentifier::PROPRIETARY)
+                tag(:SubjectSchemeName, product.publisher_name)
+                tag(:SubjectCode, product_category.id)
+                tag(:SubjectHeadingText, product_category.name)
+              end
             end
           end
         end
@@ -719,20 +726,23 @@ module Elibri
           if product.authorship_kind.user_given?
             comment 'Gdy wyszczególniono autorów', :kind => :onix_contributors if product.contributors.present?
             product.contributors.each_with_index do |contributor, idx|
-              tag(:Contributor,  :sourcename => "contributorid:#{contributor.id}", :datestamp => contributor.updated_at.to_s(:onix)) do
+              options = {}
+              options[:sourcename] = "contributorid:#{contributor.id}" if contributor.respond_to?(:id)
+              options[:datestamp] = contributor.updated_at.to_s(:onix) if contributor.respond_to?(:updated_at)
+              tag(:Contributor,  options) do
                 tag(:SequenceNumber, idx + 1)
                 comment_dictionary 'Rola autora', :ContributorRole, :indent => 10, :kind => :onix_contributors
                 tag(:ContributorRole, contributor.role_onix_code) #lista 17
                 comment 'Tylko w przypadku tłumaczy:', :kind => :onix_contributors
-                tag(:FromLanguage, contributor.language_onix_code) if contributor.language_onix_code.present?
+                tag(:FromLanguage, contributor.language_onix_code) if contributor.respond_to?(:language_onix_code) && contributor.language_onix_code.present?
                 tag(:PersonName, contributor.generated_full_name) #zawsze jest TODO - dodać takie pole do bazy danych
 
-                tag(:TitlesBeforeNames, contributor.title) if contributor.title.present? #tytuł
-                tag(:NamesBeforeKey, contributor.name) if contributor.name.present?      #imię
-                tag(:PrefixToKey, contributor.last_name_prefix) if contributor.last_name_prefix.present? #van, von
-                tag(:KeyNames, contributor.last_name) if contributor.last_name.present?
-                tag(:NamesAfterKey, contributor.last_name_postfix) if contributor.last_name_postfix.present?
-                tag(:BiographicalNote, contributor.biography.text) if contributor.biography
+                tag(:TitlesBeforeNames, contributor.title) if contributor.respond_to?(:title) && contributor.title.present? #tytuł
+                tag(:NamesBeforeKey, contributor.name) if contributor.respond_to?(:name) && contributor.name.present?      #imię
+                tag(:PrefixToKey, contributor.last_name_prefix) if contributor.respond_to?(:last_name_prefix) && contributor.last_name_prefix.present? #van, von
+                tag(:KeyNames, contributor.last_name) if contributor.respond_to?(:last_name) && contributor.last_name.present?
+                tag(:NamesAfterKey, contributor.last_name_postfix) if contributor.respond_to?(:last_name_postfix) && contributor.last_name_postfix.present?
+                tag(:BiographicalNote, contributor.biography.text) if contributor.respond_to?(:biography) && contributor.biography
               end
             end  
           end
@@ -789,7 +799,7 @@ module Elibri
               end
             end 
           end
-          if product.original_title.present?
+          if product.respond_to?(:original_title) && product.original_title.present?
             tag(:TitleDetail) do
               comment "Tytuł w języku oryginału - #{Elibri::ONIX::Dict::Release_3_0::TitleType::DISTINCTIVE_TITLE}", :kind => :onix_titles
               tag(:TitleType, Elibri::ONIX::Dict::Release_3_0::TitleType::ORIGINAL_TITLE)
@@ -800,7 +810,7 @@ module Elibri
               end
             end  
           end 
-          if product.trade_title.present?
+          if product.respond_to?(:trade_title) && product.trade_title.present?
             tag(:TitleDetail) do
               comment "Tytuł handlowy używany przez wydawnictwo - #{Elibri::ONIX::Dict::Release_3_0::TitleType::DISTRIBUTORS_TITLE}", :kind => :onix_titles
               tag(:TitleType, Elibri::ONIX::Dict::Release_3_0::TitleType::DISTRIBUTORS_TITLE) #tytuł produktu
@@ -817,7 +827,7 @@ module Elibri
         # @hidden_tags RecordReference NotificationType ProductIdentifier ProductComposition ProductForm TitleDetail
         # @title Opis wydania
         def export_edition!(product)
-          if product.edition_statement.present?
+          if product.respond_to?(:edition_statement) && product.edition_statement.present?
             comment 'Opis wydania', :kind => :onix_edition
             tag(:EditionStatement, product.edition_statement)
           end
@@ -828,11 +838,13 @@ module Elibri
         # @title Języki 
         # Języki, w których dostępny jest produkt.
         def export_languages!(product)
-          comment_dictionary 'Rola języka', :LanguageRole, :indent => 10, :kind => :onix_languages if product.languages.present?
-          product.languages.each do |language|
-            tag(:Language) do
-              tag(:LanguageRole, language.role_onix_code)     #lista 22
-              tag(:LanguageCode, language.language_onix_code) #lista 74
+          if product.respond_to?(:languages)
+            comment_dictionary 'Rola języka', :LanguageRole, :indent => 10, :kind => :onix_languages if product.languages.present?
+            product.languages.each do |language|
+              tag(:Language) do
+                tag(:LanguageRole, language.role_onix_code)     #lista 22
+                tag(:LanguageCode, language.language_onix_code) #lista 74
+              end
             end
           end  
         end
@@ -849,12 +861,15 @@ module Elibri
             #jeśli jest pusty tekst, nie nadaje się do umieszczania w ONIX albo tekst dotyczy autora (type_onix_code.blank?) -> nie exportuj
             next if other_text.text.blank? || other_text.type_onix_code.blank? || !other_text.exportable?
 
-            tag(:TextContent, :sourcename => "textid:#{other_text.id}", :datestamp => other_text.updated_at.to_s(:onix)) do
+            options = {}
+            options[:sourcename] = "textid:#{other_text.id}" if other_text.respond_to?(:id)
+            options[:datestamp] = other_text.updated_at.to_s(:onix) if other_text.respond_to?(:updated_at)
+            tag(:TextContent, options) do
               tag(:TextType, other_text.type_onix_code) #lista 153
               comment "Zawsze #{Elibri::ONIX::Dict::Release_3_0::ContentAudience::UNRESTRICTED} - Unrestricted", :kind => :onix_texts
               tag(:ContentAudience, Elibri::ONIX::Dict::Release_3_0::ContentAudience::UNRESTRICTED)
 
-              if other_text.is_a_review? && other_text.resource_link.present?
+              if other_text.respond_to?(:is_a_review?) && other_text.respond_to?(:resource_link) && other_text.is_a_review? && other_text.resource_link.present?
                 text_source = {:sourcename => other_text.resource_link}
               else
                 text_source = {}
@@ -864,8 +879,8 @@ module Elibri
                 builder.cdata!(other_text.text)
               end
 
-              tag(:TextAuthor, other_text.text_author) if other_text.text_author.present?
-              tag(:SourceTitle, other_text.source_title) if other_text.source_title.present?
+              tag(:TextAuthor, other_text.text_author) if other_text.respond_to?(:text_author) && other_text.text_author.present?
+              tag(:SourceTitle, other_text.source_title) if other_text.respond_to?(:source_title) && other_text.source_title.present?
             end
           end  
         end
@@ -878,7 +893,10 @@ module Elibri
         def export_supporting_resources!(product)
           product.attachments.each do |attachment|
             if attachment.onix_resource_mode #jeśli klient coś dzikiego wgrał, to ignoruj to
-              tag(:SupportingResource, :sourcename => "resourceid:#{attachment.id}", :datestamp => attachment.updated_at.to_s(:onix)) do
+              options = {}
+              options[:sourcename] = "resourceid:#{attachment.id}" if attachment.respond_to?(:id)
+              options[:datestamp] = attachment.updated_at.to_s(:onix) if attachment.respond_to?(:updated_at)
+              tag(:SupportingResource, options) do
                 comment_dictionary 'Typ załącznika', :ResourceContentType, :indent => 12, :kind => :onix_supporting_resources
                 tag(:ResourceContentType, attachment.attachment_type_code) #lista 158
                 comment 'Zawsze 00 - Unrestricted', :kind => :onix_supporting_resources
@@ -889,7 +907,7 @@ module Elibri
                   comment 'Zawsze 02 - Downloadable file', :kind => :onix_supporting_resources
                   tag(:ResourceForm, Elibri::ONIX::Dict::Release_3_0::ResourceForm::DOWNLOADABLE_FILE)
                   url = attachment.file.url
-                  if url.index("http://") #w sklepie zwraca mi całego linka, wygodniej mi jest to tutaj wychwycić
+                  if url.index("http://") || url.index("https://") #w sklepie zwraca mi całego linka, wygodniej mi jest to tutaj wychwycić
                     tag(:ResourceLink, URI.escape(url))              
                   else
                     tag(:ResourceLink, URI.escape('http://' + HOST_NAME + url)) 
@@ -908,7 +926,7 @@ module Elibri
         # Oprócz nazwy serii może zostać również podany numer wewnątrz serii, jeśli seria jest numerowana.
         # Książka może należeć do kilku serii, wtedy tag <strong>&lt;Collection&gt;</strong> występuje kilkukrotnie.
         def export_series_memberships!(product)
-          if product.series_membership_kind.user_given? || product.collection_with_issn
+          if product.respond_to?(:series_membership_kind) && (product.series_membership_kind.user_given? || product.collection_with_issn)
             (product.series_memberships + [product.collection_with_issn]).compact.each_with_index do |series_membership, idx|
               tag(:Collection) do
                 comment "Używamy tylko #{Elibri::ONIX::Dict::Release_3_0::CollectionType::PUBLISHER_COLLECTION} - seria wydawnictwa", :kind => :onix_series_memberships
@@ -953,8 +971,8 @@ module Elibri
                   tag(:ProductIDType, Elibri::ONIX::Dict::Release_3_0::ProductIDType::PROPRIETARY)
                   tag(:IDTypeName, "elibri")
                   tag(:IDValue, facsimile.record_reference)
-                end
-              end  
+                end  
+              end
             end
           end
         end
@@ -968,7 +986,7 @@ module Elibri
         # identyfikatorów produktu. Poza podstawowym <strong>&lt;ProductIdentifier&gt;</strong>, znajdują się także identyfikatory
         # poszczególnych dostawców. Tag <strong>&lt;IDTypeName&gt;</strong> zawiera nazwę dostawcy.
         def export_supply_details!(product)
-          return if product.respond_to?(:skip_ProductSupply) && product.skip_ProductSupply
+          return if product.respond_to?(:skip_ProductSupply) && product.skip_ProductSupply || !product.respond_to?(:product_availabilities)
           unless product.product_availabilities.empty?
             tag(:ProductSupply) do
               product.product_availabilities.each do |pa|
