@@ -587,14 +587,16 @@ module Elibri
             end
           end
 
-          if product.respond_to?(:publisher_name) && product.publisher_name
+          if product.respond_to?(:publisher_name_for_onix) && product.publisher_name_for_onix
             tag(:Publisher) do
               comment "Wydawca - używamy tylko kodu 01 (główny wydawca)", :kind => :onix_publisher_info
               tag(:PublishingRole, '01') # Publisher, lista 45 #TODO jeszcze może być współwydawca
-              tag(:PublisherIdentifier) do
-                tag(:PublisherIDType, '01') #prioprietary
-                tag(:IDTypeName, 'ElibriPublisherCode')
-                tag(:IDValue, product.publisher_id_for_onix)
+              if product.respond_to?(:publisher_id_for_onix)
+                tag(:PublisherIdentifier) do
+                  tag(:PublisherIDType, '01') #prioprietary
+                  tag(:IDTypeName, 'ElibriPublisherCode')
+                  tag(:IDValue, product.publisher_id_for_onix)
+                end
               end
               tag(:PublisherName, product.publisher_name_for_onix) 
             end
