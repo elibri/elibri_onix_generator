@@ -230,7 +230,7 @@ module Elibri
                 export_sale_restrictions!(product) if product.respond_to?(:sale_restricted?) && product.sale_restricted? #PR.21
               end 
               remove_tag_if_empty!(:PublishingDetail)
-             
+
               #P.23 - related products
               if product.respond_to?(:facsimiles) && product.facsimiles.present? 
                 export_related_products!(product)
@@ -377,18 +377,18 @@ module Elibri
               tag(:ProductFormDetail, onix_code)
             end
           end
-           
+
           if product.respond_to?(:digital?) && product.digital?
             if product.epub_technical_protection
               comment_dictionary "Zabezpieczenie", :EpubTechnicalProtection, :indent => 10, :kind => :onix_epub_details
               tag(:EpubTechnicalProtection, product.epub_technical_protection_onix_code)
             end
-            
+
             if product.epub_fragment_info?
               tag(:EpubUsageConstraint) do
                 comment "Rodzaj ograniczenia - w tym przypadku zawsze dotyczy dostępności fragmentu książki", :indent => 12, :kind => :onix_epub_details
                 tag(:EpubUsageType, Elibri::ONIX::Dict::Release_3_0::EpubUsageType::PREVIEW) 
-                
+
                 comment_dictionary "Jaka jest decyzja wydawcy?", :EpubUsageStatus, :indent => 12, :kind => :onix_epub_details
                 tag(:EpubUsageStatus, product.epub_publication_preview_usage_status_onix_code)
                 if product.epub_publication_preview_usage_status_onix_code == Elibri::ONIX::Dict::Release_3_0::EpubUsageStatus::LIMITED
@@ -1078,6 +1078,7 @@ module Elibri
             comment 'Vat w procentach'
             tag("elibri:Vat", product.vat) if product.vat.present?
             tag("elibri:PKWiU", product.pkwiu) if product.pkwiu.present?
+            tag("elibri:PDWExclusiveness", product.pdw_exclusiveness) if product.pdw_exclusiveness.present?
             tag("elibri:preview_exists", product.preview_exists?.to_s)
             if product.digital?
               if product.epub_sale_not_restricted? || product.epub_sale_restricted_to.nil?
