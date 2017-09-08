@@ -660,8 +660,10 @@ module Elibri
 
         # @hidden_tags RecordReference NotificationType ProductIdentifier ProductComposition ProductForm TitleDetail
         # @title Kategorie
-        # eLibri stosuje wewnętrzną hierarchę kategorii, ich lista dostępna jest
+        # W dostarczanych przez nas plikach ONIX mogą być zawarte dwie rodzaje kategoryzacji: kategoryzacja elibri, dostępna  
         # = link_to "tutaj", doc_api_path("categories")
+        # oraz kategoryzacja wydawnictwa. Proszę zwrócić na tag &lt;SubjectSchemeName&gt; - jeśli jego zawartość to elibri.com.pl - to mamy do czynienia
+        # z informacją o kategorii elibri, jeśli jest tam wpisana nazwa wydawnictwa - to jest tam kategoria wydawnicza.
         def export_subjects!(product)
 
           # Kategorie wg. eLibri
