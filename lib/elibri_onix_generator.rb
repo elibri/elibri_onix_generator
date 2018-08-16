@@ -780,7 +780,8 @@ module Elibri
         #
         #
         def export_titles!(product)
-          if product.title_parts.present? or product.original_title.present? or product.trade_title.present?
+          if product.title_parts.present? or (product.respond_to?(:original_title) && product.original_title.present?) or 
+                                             (product.respond_to?(:trade_title) && product.trade_title.present?)
             #comment_dictionary 'Rozróżniane typy tytułów', :TitleType, :indent => 10,  :kind => :onix_titles
           end
 
