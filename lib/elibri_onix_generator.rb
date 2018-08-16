@@ -660,9 +660,9 @@ module Elibri
 
         # @hidden_tags RecordReference NotificationType ProductIdentifier ProductComposition ProductForm TitleDetail
         # @title Kategorie
-        # W dostarczanych przez nas plikach ONIX mogą być zawarte dwie rodzaje kategoryzacji: kategoryzacja elibri, dostępna  
-        # = link_to "tutaj", doc_api_path("categories")
-        # oraz kategoryzacja wydawnictwa. Proszę zwrócić na tag &lt;SubjectSchemeName&gt; - jeśli jego zawartość to elibri.com.pl - to mamy do czynienia
+        # W dostarczanych przez nas plikach ONIX mogą być zawarte dwie rodzaje kategoryzacji:
+        # = link_to "kategoryzacja elibri", doc_api_path("categories")
+        # oraz kategoryzacja wydawnictwa. Proszę zwrócić uwagę na tag &lt;SubjectSchemeName&gt; &ndash; jeśli jego zawartość to "elibri.com.pl" &ndash; mamy do czynienia
         # z informacją o kategorii elibri, jeśli jest tam wpisana nazwa wydawnictwa - to jest tam kategoria wydawnicza.
         def export_subjects!(product)
 
@@ -1067,7 +1067,7 @@ module Elibri
         # @hidden_tags RecordReference NotificationType ProductIdentifier DescriptiveDetail
         # Standard ONIX nie przewiduje w chwili obecnej atrybutów produktów niezbędnych z punktu widzenia polskiego rynku wydawniczego.
         # Są to atrybuty takie jak np. Vat czy PKWiU. eLibri rozszerza więc ONIX o kilka użytecznych tagów, wprowadzając nową przestrzeń nazw
-        # w generowanych XML`ach.
+        # w generowanych XML'ach.
         def export_elibri_extensions!(product)
           if @elibri_onix_dialect >= '3.0.1'
 
@@ -1082,6 +1082,7 @@ module Elibri
             tag("elibri:Vat", product.vat) if product.vat.present?
             tag("elibri:PKWiU", product.pkwiu) if product.pkwiu.present?
             tag("elibri:PDWExclusiveness", product.pdw_exclusiveness) if product.pdw_exclusiveness.present?
+            tag("elibri:AdditionalInfo", product.additional_info) if product.additional_info.present?
             tag("elibri:preview_exists", product.preview_exists?.to_s)
             if product.digital?
               if product.epub_sale_not_restricted? || product.epub_sale_restricted_to.nil?
