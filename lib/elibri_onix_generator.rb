@@ -165,7 +165,12 @@ module Elibri
         end
 
         def field_exists?(object, method_name)
-          object.respond_to?(method_name) && object.send(method_name) &&  object.send(method_name).size > 0
+          if object.respond_to?(method_name) 
+            v = object.send(method_name) 
+            v && (v.respond_to?(:size) ? v.size > 0 : true)
+          else
+            false
+          end
         end
 
 
@@ -674,6 +679,26 @@ module Elibri
                 tag(:SubjectSchemeVersion, '1.0')
                 tag(:SubjectCode, product_category.id)
                 tag(:SubjectHeadingText, product_category.full_node_path_name)
+              end
+            end
+          end
+
+          if product.respond_to?(:thema_codes_for_onix)
+            product.thema_codes_for_onix.each do |code|
+
+              scheme_id = { 
+                    "1" => 94,  #Thema place qualifier  
+                    "2" => 95,  #Thema language qualifier 
+                    "3" => 96,  #Thema time period qualifier 
+                    "4" => 97,  #Thema educational purpose qualifier 
+                    "5" => 98,  #Thema interest age / special interest qualifier 
+                    "6" => 99,  #Thema style qualifier
+                }[code[0]] || 93
+
+              tag(:Subject) do
+                tag(:SubjectSchemeIdentifier, scheme_id)
+                tag(:SubjectSchemeVersion, "1.3")
+                tag(:SubjectCode, code)
               end
             end
           end
