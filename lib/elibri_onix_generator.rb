@@ -644,8 +644,7 @@ module Elibri
             end
           end
 
-          if product.respond_to?(:kind_of_book?) && product.respond_to?(:kind_of_ebook?) && product.respond_to?(:number_of_pages) && 
-             (product.kind_of_book? or product.kind_of_ebook?) && product.number_of_pages #number_of_pages to int
+          if field_exists?(product, :number_of_pages)
             tag(:Extent) do
               comment 'Liczba stron - tylko dla produktów typu książka', :kind => :onix_extent
               tag(:ExtentType, Elibri::ONIX::Dict::Release_3_0::ExtentType::PAGE_COUNT) 
@@ -653,8 +652,7 @@ module Elibri
               tag(:ExtentUnit, Elibri::ONIX::Dict::Release_3_0::ExtentUnit::PAGES)
             end
           end
-          if product.respond_to?(:kind_of_book?) && product.respond_to?(:kind_of_ebook?) && product.respond_to?(:number_of_illustrations) && 
-             (product.kind_of_book? or product.kind_of_ebook?) and product.number_of_illustrations 
+          if field_exists?(product, :number_of_illustrations) 
             comment 'Liczba ilustracji - tylko dla produktów typu książka', :kind => :onix_extent
             tag(:NumberOfIllustrations, product.number_of_illustrations) 
           end
@@ -953,7 +951,7 @@ module Elibri
         # Oprócz nazwy serii może zostać również podany numer wewnątrz serii, jeśli seria jest numerowana.
         # Książka może należeć do kilku serii, wtedy tag <strong>&lt;Collection&gt;</strong> występuje kilkukrotnie.
         def export_series_memberships!(product)
-          if product.respond_to?(:series_membership_kind) && (product.series_membership_kind.user_given? || product.collection_with_issn)
+          if product.respond_to?(:series_membership_kind) && (product.series_membership_kind == "user_given" || product.collection_with_issn)
             (product.series_memberships + [product.collection_with_issn]).compact.each_with_index do |series_membership, idx|
               tag(:Collection) do
                 comment "Używamy tylko #{Elibri::ONIX::Dict::Release_3_0::CollectionType::PUBLISHER_COLLECTION} - seria wydawnictwa", :kind => :onix_series_memberships
@@ -1094,7 +1092,10 @@ module Elibri
           if @elibri_onix_dialect >= '3.0.1'
 
             if field_exists?(product, :cover_type)
-              comment_dictionary "Format okładki", Product::CoverType.all.map(&:name), :indent => 10
+              begin
+                comment_dictionary "Format okładki", Product::CoverType.all.map(&:name), :indent => 10
+              rescue NameError
+              end
               tag("elibri:CoverType", product.cover_type.name)
             end
 

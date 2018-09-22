@@ -1,6 +1,8 @@
 # -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
 require "elibri_onix_generator/version"
+require "elibri_onix_generator/model/product"
+require "elibri_onix_generator/model/contributor"
 
 Gem::Specification.new do |s|
   s.name        = "elibri_onix_generator"
