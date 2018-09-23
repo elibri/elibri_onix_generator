@@ -118,7 +118,7 @@ module Elibri
         end
 
         def thema_codes_for_onix
-          thema_codes
+          thema_codes || []
         end
 
         def initialize(attributes = {})
