@@ -157,10 +157,10 @@ module Elibri
         def comment(text, options = {})
           if options[:kind] && @comment_kinds
             Array(options[:kind]).each do |kind|
-              builder.comment!("$#{kind}$ #{text}")
+              @builder.comment!("$#{kind}$ #{text}")
             end
           elsif @comments
-            builder.comment!(text) 
+            @builder.comment!(text) 
           end
         end
 
