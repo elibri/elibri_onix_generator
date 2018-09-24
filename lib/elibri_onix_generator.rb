@@ -417,10 +417,10 @@ module Elibri
         # W przypadku map eksportujemy również jej skalę w tagu &lt;MapScale&gt;
         def export_measurement!(product)
           if product.respond_to?(:kind_of_measurable?) && product.kind_of_measurable?
-            [[product.height,    Elibri::ONIX::Dict::Release_3_0::MeasureType::HEIGHT, Product::HEIGHT_UNIT, 'Wysokość'],
-             [product.width,     Elibri::ONIX::Dict::Release_3_0::MeasureType::WIDTH, Product::WIDTH_UNIT, 'Szerokość'],
-             [product.thickness, Elibri::ONIX::Dict::Release_3_0::MeasureType::THICKNESS, Product::THICKNESS_UNIT, 'Grubość'],
-             [product.weight,    Elibri::ONIX::Dict::Release_3_0::MeasureType::WEIGHT, Product::WEIGHT_UNIT, 'Masa']
+            [[product.height,    Elibri::ONIX::Dict::Release_3_0::MeasureType::HEIGHT, 'mm', 'Wysokość'],
+             [product.width,     Elibri::ONIX::Dict::Release_3_0::MeasureType::WIDTH, 'mm', 'Szerokość'],
+             [product.thickness, Elibri::ONIX::Dict::Release_3_0::MeasureType::THICKNESS, 'mm', 'Grubość'],
+             [product.weight,    Elibri::ONIX::Dict::Release_3_0::MeasureType::WEIGHT, 'gr', 'Masa']
             ].each do |value, measure_type_code, unit_code, name|
                if value
                  tag(:Measure) do
