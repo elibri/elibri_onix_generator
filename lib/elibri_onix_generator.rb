@@ -681,8 +681,8 @@ module Elibri
             end
           end
 
-          if product.respond_to?(:thema_codes_for_onix)
-            product.thema_codes_for_onix.each do |code|
+          if product.respond_to?(:thema_codes_for_onix_with_heading_text)
+            product.thema_codes_for_onix_with_heading_text.each do |code, text|
 
               scheme_id = { 
                     "1" => 94,  #Thema place qualifier  
@@ -697,6 +697,8 @@ module Elibri
                 tag(:SubjectSchemeIdentifier, scheme_id)
                 tag(:SubjectSchemeVersion, "1.3")
                 tag(:SubjectCode, code)
+                tag(:SubjectHeadingText, text)
+                tag(:SubjectHeadingText, text)
               end
             end
           end
