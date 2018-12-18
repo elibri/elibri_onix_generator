@@ -661,10 +661,20 @@ module Elibri
 
         # @hidden_tags RecordReference NotificationType ProductIdentifier ProductComposition ProductForm TitleDetail
         # @title Kategorie
-        # W dostarczanych przez nas plikach ONIX mogą być zawarte dwie rodzaje kategoryzacji:
-        # = link_to "kategoryzacja elibri", doc_api_path("categories")
-        # oraz kategoryzacja wydawnictwa. Proszę zwrócić uwagę na tag &lt;SubjectSchemeName&gt; &ndash; jeśli jego zawartość to "elibri.com.pl" &ndash; mamy do czynienia
-        # z informacją o kategorii elibri, jeśli jest tam wpisana nazwa wydawnictwa - to jest tam kategoria wydawnicza.
+        # W dostarczanych przez nas plikach ONIX mogą być zawarte trzy rodzaje kategoryzacji:
+        # <ul>
+        #   <li><a href='https://www.elibri.com.pl/doc/api/categories'>kategoryzacja elbri (będzie wkrótce wygaszana)</a></li>
+        #   <li>Thema - <a href='https://www.elibri.com.pl/thema'>browser kategorii</a>, <a href='https://www.elibri.com.pl/system/doc/thema-przyklady.pdf'>przykłady</a>,
+        #       <a href='https://www.editeur.org/151/Thema/'>oficjalna strona Themy</a>
+        #   <li>kategoryzacja wydawnicza</li>
+        #   </li>
+        # </ul>
+        # Wszystkie trzy kategoryzacje mogą współistnieć, rozróżniane przez wartości w &lt;SubjectSchemeIdentifier&gt; i  &lt;SubjectSchemeName&gt;:
+        # <ul>
+        #   <li>&lt;SubjectSchemeIdentifier&gt; o wartościach 93 - 99 - to są kategorie i kwantyfikatory Thema
+        #   <li>&lt;SubjectSchemeIdentifier&gt; o wartości 24 oraz &lt;SubjectSchemeName&gt; o wartości elibri.com.pl - to są kategorie elibri
+        #   <li>&lt;SubjectSchemeIdentifier&gt; o wartości 24 oraz &lt;SubjectSchemeName&gt; z nazwą wydawnictwa - to są kategorie wydawnicze.</li>
+        # </ul>
         def export_subjects!(product)
 
           # Kategorie wg. eLibri
@@ -697,7 +707,6 @@ module Elibri
                 tag(:SubjectSchemeIdentifier, scheme_id)
                 tag(:SubjectSchemeVersion, "1.3")
                 tag(:SubjectCode, code)
-                tag(:SubjectHeadingText, text)
                 tag(:SubjectHeadingText, text)
               end
             end
