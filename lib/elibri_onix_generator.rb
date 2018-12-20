@@ -707,7 +707,7 @@ module Elibri
                 tag(:SubjectSchemeIdentifier, scheme_id)
                 tag(:SubjectSchemeVersion, "1.3")
                 tag(:SubjectCode, code)
-                tag(:SubjectHeadingText, text)
+                tag(:SubjectHeadingText, text) if text && text.size > 0
               end
             end
           end

@@ -117,7 +117,7 @@ module Elibri
           publisher_name
         end
 
-        def thema_codes_for_onix
+        def thema_codes_for_onix_with_heading_text
           thema_codes || []
         end
 
