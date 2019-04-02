@@ -1079,7 +1079,7 @@ module Elibri
                         tag(:TaxRatePercent, price_info.vat)
                       end
                       tag(:CurrencyCode, price_info.currency_code)
-                      if product.price_printed_on_product_onix_code
+                      if field_exists?(product, :price_printed_on_product_onix_code)
                         comment_dictionary "Cena na okładce?", :PricePrintedOnProduct, :indent => 12
                         tag(:PrintedOnProduct, product.price_printed_on_product_onix_code)  #lista 174
                         comment 'Zawsze 00 - Unknown / unspecified'
