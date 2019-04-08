@@ -339,9 +339,9 @@ module Elibri
           comment 'W tej chwili tylko 00 - pojedynczy element', :kind => :onix_product_form
           tag(:ProductComposition, '00') #lista 2 - Single-item retail product  
 
-          if product.product_form_code
+          if product.product_form_onix_code
             comment_dictionary "Format produktu", :ProductFormCode, :indent => 10, :kind => [:onix_product_form]
-            tag(:ProductForm, product.product_form_code)
+            tag(:ProductForm, { "PODH" => "BB", "PODS" => "BC" }[product.product_form_onix_code] || product.product_form_onix_code)
           end
         end
 
