@@ -1,8 +1,5 @@
-# encoding: UTF-8
 require "elibri_onix_generator/version"
-require 'builder'
 require 'ostruct'
-require 'elibri_onix_dict'
 
 module Elibri
   module ONIX
