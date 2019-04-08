@@ -342,9 +342,9 @@ module Elibri
           comment 'W tej chwili tylko 00 - pojedynczy element', :kind => :onix_product_form
           tag(:ProductComposition, '00') #lista 2 - Single-item retail product  
 
-          if product.product_form_onix_code
+          if product.product_form_code
             comment_dictionary "Format produktu", :ProductFormCode, :indent => 10, :kind => [:onix_product_form]
-            tag(:ProductForm, product.product_form_onix_code)
+            tag(:ProductForm, product.product_form_code)
           end
         end
 
@@ -1129,7 +1129,7 @@ module Elibri
               tag("elibri:HyphenatedISBN", product.isbn.human_value)
             end
 
-            if product.respond_to?(:digital?) && product.digital?
+            if product.respond_to?(:digital_or_pod?) && product.digital_or_pod?
               if product.excerpts.size > 0
                  tag("elibri:excerpts") do      
                    product.excerpts.each do |excerpt|
