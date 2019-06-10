@@ -979,7 +979,7 @@ module Elibri
                   tag(:TitleElement) do
                     comment "Używamy tylko #{Elibri::ONIX::Dict::Release_3_0::TitleElementLevel::COLLECTION}", :kind => :onix_series_memberships
                     tag(:TitleElementLevel, Elibri::ONIX::Dict::Release_3_0::TitleElementLevel::COLLECTION)
-                    tag(:PartNumber, series_membership.number_within_series) if series_membership.number_within_series
+                    tag(:PartNumber, series_membership.number_within_series) if field_exists?(series_membership, :number_within_series)
                     tag(:TitleText, series_membership.series_name)
                   end
                 end
