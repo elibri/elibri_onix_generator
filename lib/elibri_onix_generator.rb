@@ -948,7 +948,25 @@ module Elibri
                  end
               end
             end
-          end  
+          end
+          if product.respond_to?(:digital?) && product.digital? && product.respond_to?(:excerpts)
+            product.excerpts.each do |excerpt|
+              options = {}
+              options[:sourcename] = "excerpt:#{excerpt.id}" if excerpt.respond_to?(:id)
+              options[:datestamp] = excerpt.stored_updated_at.to_datetime.to_s(:onix) if excerpt.respond_to?(:stored_updated_at)
+
+              tag(:SupportingResource, options) do
+                tag(:ResourceContentType, Elibri::ONIX::Dict::Release_3_0::ResourceContentType::SAMPLE_CONTENT)
+                tag(:ContentAudience, Elibri::ONIX::Dict::Release_3_0::ContentAudience::UNRESTRICTED)
+                tag(:ResourceMode, excerpt.onix_resource_mode) #lista 159
+                tag(:ResourceVersion) do
+                  tag(:ResourceForm, Elibri::ONIX::Dict::Release_3_0::ResourceForm::DOWNLOADABLE_FILE)
+                  url = "https://www.elibri.com.pl/excerpt/#{excerpt.id}?md5=#{excerpt.file_md5}"
+                  tag(:ResourceLink, URI.escape(url))
+                end
+              end
+            end
+          end
         end
 
 
