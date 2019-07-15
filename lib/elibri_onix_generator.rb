@@ -131,6 +131,7 @@ module Elibri
         @elibri_onix_dialect = options[:elibri_onix_dialect]
         # Gdy true, ignorujemy rozszerzenia eLibri
         @pure_onix = options[:pure_onix]
+        @skip_sourcename_and_timestamp = !!options[:skip_sourcename_and_timestamp]
 
         # W testach często nie chcę żadnych nagłówków - interesuje mnie tylko tag <Product>
         if options[:export_headers]
@@ -760,8 +761,10 @@ module Elibri
             comment 'Gdy wyszczególniono autorów', :kind => :onix_contributors if product.contributors && product.contributors.size > 0
             product.contributors.each_with_index do |contributor, idx|
               options = {}
-              options[:sourcename] = "contributorid:#{contributor.id}" if contributor.respond_to?(:id)
-              options[:datestamp] = contributor.updated_at.to_s(:onix) if contributor.respond_to?(:updated_at)
+              unless @skip_sourcename_and_timestamp
+                options[:sourcename] = "contributorid:#{contributor.id}" if contributor.respond_to?(:id)
+                options[:datestamp] = contributor.updated_at.to_s(:onix) if contributor.respond_to?(:updated_at)
+              end
               tag(:Contributor,  options) do
                 tag(:SequenceNumber, idx + 1)
                 comment_dictionary 'Rola autora', :ContributorRole, :indent => 10, :kind => :onix_contributors
@@ -894,8 +897,10 @@ module Elibri
             next if other_text.text.nil? || other_text.text.strip.size == 0 || other_text.type_onix_code.nil? || other_text.type_onix_code.strip.size == 0 || !other_text.exportable?
 
             options = {}
-            options[:sourcename] = "textid:#{other_text.id}" if other_text.respond_to?(:id)
-            options[:datestamp] = other_text.updated_at.to_s(:onix) if other_text.respond_to?(:updated_at)
+            unless @skip_sourcename_and_timestamp
+              options[:sourcename] = "textid:#{other_text.id}" if other_text.respond_to?(:id)
+              options[:datestamp] = other_text.updated_at.to_s(:onix) if other_text.respond_to?(:updated_at)
+            end
             tag(:TextContent, options) do
               tag(:TextType, other_text.type_onix_code) #lista 153
               comment "Zawsze #{Elibri::ONIX::Dict::Release_3_0::ContentAudience::UNRESTRICTED} - Unrestricted", :kind => :onix_texts
@@ -927,8 +932,10 @@ module Elibri
           product.attachments.each do |attachment|
             if attachment.onix_resource_mode #jeśli klient coś dzikiego wgrał, to ignoruj to
               options = {}
-              options[:sourcename] = "resourceid:#{attachment.id}" if attachment.respond_to?(:id)
-              options[:datestamp] = attachment.updated_at.to_s(:onix) if attachment.respond_to?(:updated_at)
+              unless @skip_sourcename_and_timestamp
+                options[:sourcename] = "resourceid:#{attachment.id}" if attachment.respond_to?(:id)
+                options[:datestamp] = attachment.updated_at.to_s(:onix) if attachment.respond_to?(:updated_at)
+              end
               tag(:SupportingResource, options) do
                 comment_dictionary 'Typ załącznika', :ResourceContentType, :indent => 12, :kind => :onix_supporting_resources
                 tag(:ResourceContentType, attachment.attachment_type_code) #lista 158
@@ -939,30 +946,41 @@ module Elibri
                 tag(:ResourceVersion) do
                   comment 'Zawsze 02 - Downloadable file', :kind => :onix_supporting_resources
                   tag(:ResourceForm, Elibri::ONIX::Dict::Release_3_0::ResourceForm::DOWNLOADABLE_FILE)
-                  url = attachment.file.url
+                  url = attachment.file.url.gsub(/\?\d+$/, "") #usuwaj timestamp z końca
                   if url.index("http://") || url.index("https://") #w sklepie zwraca mi całego linka, wygodniej mi jest to tutaj wychwycić
                     tag(:ResourceLink, URI.escape(url))              
                   else
                     tag(:ResourceLink, URI.escape('http://' + HOST_NAME + url)) 
                   end
-                 end
+                  if attachment.respond_to?(:updated_at)
+                    tag(:ContentDate) do
+                      tag(:ContentDateRole, Elibri::ONIX::Dict::Release_3_0::ContentDateRole::LAST_UPDATED)
+                      tag(:Date, attachment.updated_at.strftime("%Y%m%d"), dateformat: Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDD)
+                    end
+                  end
+                end
               end
             end
           end
-          if product.respond_to?(:digital?) && product.digital? && product.respond_to?(:excerpts)
-            product.excerpts.each do |excerpt|
-              options = {}
-              options[:sourcename] = "excerpt:#{excerpt.id}" if excerpt.respond_to?(:id)
-              options[:datestamp] = excerpt.stored_updated_at.to_datetime.to_s(:onix) if excerpt.respond_to?(:stored_updated_at)
-
-              tag(:SupportingResource, options) do
-                tag(:ResourceContentType, Elibri::ONIX::Dict::Release_3_0::ResourceContentType::SAMPLE_CONTENT)
-                tag(:ContentAudience, Elibri::ONIX::Dict::Release_3_0::ContentAudience::UNRESTRICTED)
-                tag(:ResourceMode, excerpt.onix_resource_mode) #lista 159
+          if product.respond_to?(:digital?) && product.digital? && product.respond_to?(:excerpts) && product.excerpts.present?
+            options = {}
+            tag(:SupportingResource) do
+              tag(:ResourceContentType, Elibri::ONIX::Dict::Release_3_0::ResourceContentType::SAMPLE_CONTENT)
+              tag(:ContentAudience, Elibri::ONIX::Dict::Release_3_0::ContentAudience::UNRESTRICTED)
+              tag(:ResourceMode, product.excerpt_onix_resource_mode) #lista 159
+              product.excerpts.each do |excerpt|
                 tag(:ResourceVersion) do
                   tag(:ResourceForm, Elibri::ONIX::Dict::Release_3_0::ResourceForm::DOWNLOADABLE_FILE)
-                  url = "https://www.elibri.com.pl/excerpt/#{excerpt.id}?md5=#{excerpt.file_md5}"
+                  tag(:ResourceVersionFeature) do
+                    tag(:ResourceVersionFeatureType, Elibri::ONIX::Dict::Release_3_0::ResourceVersionFeatureType::FILE_FORMAT)   #lista 162
+                    tag(:FeatureValue, excerpt.excerpt_onix_type_name)
+                  end
+                  url = "https://www.elibri.com.pl/excerpt/#{excerpt.id}/#{excerpt.file_md5}/#{excerpt.canonical_file_name}"
                   tag(:ResourceLink, URI.escape(url))
+                  tag(:ContentDate) do
+                    tag(:ContentDateRole, Elibri::ONIX::Dict::Release_3_0::ContentDateRole::LAST_UPDATED)
+                    tag(:Date, excerpt.stored_updated_at.strftime("%Y%m%d"), dateformat: Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDD)
+                  end
                 end
               end
             end
