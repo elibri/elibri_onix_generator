@@ -489,7 +489,7 @@ module Elibri
               tag(:PublishingDateRole, Elibri::ONIX::Dict::Release_3_0::PublishingDateRole::PUBLICATION_DATE) #lista 163
               comment_dictionary "Format daty", :DateFormat, :indent => 12, :kind => :onix_publishing_status
               tag(:DateFormat, format_code)  #lista 55
-              tag(:Date, date)
+              tag(:Date, date, dateformat: format_code)
             end
           end
 
@@ -498,7 +498,7 @@ module Elibri
               comment "Jeśli 27 - to data początku przyjmowania zamówień na dany tytuł"
               tag(:PublishingDateRole, Elibri::ONIX::Dict::Release_3_0::PublishingDateRole::PREORDER_EMBARGO_DATE) #lista 163
               tag(:DateFormat, Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDD)
-              tag(:Date, product.distribution_start.strftime("%Y%m%d"))
+              tag(:Date, product.distribution_start.strftime("%Y%m%d"), dateformat: Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDD)
             end
           end
         end
