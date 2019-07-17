@@ -501,6 +501,17 @@ module Elibri
               tag(:Date, product.distribution_start.strftime("%Y%m%d"), dateformat: Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDD)
             end
           end
+
+          if product.respond_to?(:epub_sale_not_restricted?) && product.respond_to?(:epub_sale_restricted_to)
+            if !product.epub_sale_not_restricted? && product.epub_sale_restricted_to
+              tag(:PublishingDate) do
+                comment "Jeśli 13 - to data po której książka zostanie wycofana z rynku"
+                tag(:PublishingDateRole, Elibri::ONIX::Dict::Release_3_0::PublishingDateRole::OUT_OF_PRINT_DATE) #lista 163
+                tag(:DateFormat, Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDD)
+                tag(:Date, product.epub_sale_restricted_to.strftime("%Y%m%d"), dateformat: Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDD)
+              end
+            end
+          end
         end
 
         # @hidden_tags RecordReference NotificationType ProductIdentifier DescriptiveDetail Publisher PublishingStatus
