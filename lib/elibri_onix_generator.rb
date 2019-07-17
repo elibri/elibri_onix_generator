@@ -1065,9 +1065,8 @@ module Elibri
                     tag(:SupplierRole, pa.supplier_role_onix_code) #lista 93
                     tag(:SupplierIdentifier) do
                       comment "Zawsze 02 - Proprietary. Identyfikujemy dostawcę po NIP"
-                      tag(:SupplierIDType, '02') #lista 92, Proprietary  
-                      tag(:IDTypeName, 'NIP')
-                      tag(:IDValue, pa.supplier.nip.gsub("-", ""))
+                      tag(:SupplierIDType, '23') #lista 92, identyfiaktor VAT
+                      tag(:IDValue, pa.supplier.vatid)
                     end
                     tag(:SupplierName, pa.supplier.name)
                     tag(:TelephoneNumber, pa.supplier.phone) if field_exists?(pa.supplier, :phone)
@@ -1108,7 +1107,7 @@ module Elibri
                       tag(:PriceAmount, price_info.amount) 
                       tag(:Tax) do
                         comment 'VAT'
-                        tag(:TaxType, '01') #lista 174, VAT
+                        tag(:TaxType, '01') #lista 171, VAT
                         tag(:TaxRatePercent, price_info.vat)
                       end
                       tag(:CurrencyCode, price_info.currency_code)
