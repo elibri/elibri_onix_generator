@@ -1063,10 +1063,12 @@ module Elibri
                   tag(:Supplier) do
                     comment_dictionary "Rola dostawcy", :SupplierRole, :indent => 12
                     tag(:SupplierRole, pa.supplier_role_onix_code) #lista 93
-                    tag(:SupplierIdentifier) do
-                      comment "Zawsze 02 - Proprietary. Identyfikujemy dostawcę po NIP"
-                      tag(:SupplierIDType, '23') #lista 92, identyfiaktor VAT
-                      tag(:IDValue, pa.supplier.vatid)
+                    if pa.supplier.vatid.present?
+                      tag(:SupplierIdentifier) do
+                        comment "Zawsze 02 - Proprietary. Identyfikujemy dostawcę po NIP"
+                        tag(:SupplierIDType, '23') #lista 92, identyfiaktor VAT
+                        tag(:IDValue, pa.supplier.vatid)
+                      end
                     end
                     tag(:SupplierName, pa.supplier.name)
                     tag(:TelephoneNumber, pa.supplier.phone) if field_exists?(pa.supplier, :phone)
