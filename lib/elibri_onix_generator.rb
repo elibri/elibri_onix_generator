@@ -165,6 +165,7 @@ module Elibri
         def field_exists?(object, method_name)
           if object.respond_to?(method_name) 
             v = object.send(method_name) 
+            v = v.strip if v.respond_to?(:strip)
             v && (v.respond_to?(:size) ? v.size > 0 : true)
           else
             false
@@ -385,7 +386,8 @@ module Elibri
               tag(:EpubTechnicalProtection, product.epub_technical_protection_onix_code)
             end
 
-            if product.epub_fragment_info?
+            if product.epub_fragment_info? && product.epub_publication_preview_usage_status_onix_code.present? #czasem brakuje informacji o fragmencie, nawet gdy jest deklaracja,
+                                                                                                               #że taka informacja powinna byc
               tag(:EpubUsageConstraint) do
                 comment "Rodzaj ograniczenia - w tym przypadku zawsze dotyczy dostępności fragmentu książki", :indent => 12, :kind => :onix_epub_details
                 tag(:EpubUsageType, Elibri::ONIX::Dict::Release_3_0::EpubUsageType::PREVIEW) 
@@ -643,7 +645,7 @@ module Elibri
             end
           end
 
-          if product.respond_to?(:kind_of_audio?) && product.respond_to?(:duration) && product.kind_of_audio? and product.duration
+          if product.respond_to?(:kind_of_audio?) && product.respond_to?(:duration) && product.kind_of_audio? and product.duration && product.duration.to_i > 0
             tag(:Extent) do
               comment 'Czas trwania (w minutach) - tylko dla produktów typu audio', :kind => :onix_extent
               tag(:ExtentType, Elibri::ONIX::Dict::Release_3_0::ExtentType::DURATION)
@@ -653,7 +655,7 @@ module Elibri
             end
           end
 
-          if field_exists?(product, :number_of_pages)
+          if field_exists?(product, :number_of_pages) && product.number_of_pages.to_i > 0
             tag(:Extent) do
               comment 'Liczba stron - tylko dla produktów typu książka', :kind => :onix_extent
               tag(:ExtentType, Elibri::ONIX::Dict::Release_3_0::ExtentType::PAGE_COUNT) 
@@ -661,7 +663,7 @@ module Elibri
               tag(:ExtentUnit, Elibri::ONIX::Dict::Release_3_0::ExtentUnit::PAGES)
             end
           end
-          if field_exists?(product, :number_of_illustrations) 
+          if field_exists?(product, :number_of_illustrations) && product.number_of_illustrations.to_i > 0
             comment 'Liczba ilustracji - tylko dla produktów typu książka', :kind => :onix_extent
             tag(:NumberOfIllustrations, product.number_of_illustrations) 
           end
@@ -783,11 +785,13 @@ module Elibri
                 comment 'Tylko w przypadku tłumaczy:', :kind => :onix_contributors
                 tag(:FromLanguage, contributor.language_onix_code) if field_exists?(contributor, :language_onix_code)
                 tag(:PersonName, contributor.generated_full_name) 
-                tag(:TitlesBeforeNames, contributor.title) if field_exists?(contributor, :title)
-                tag(:NamesBeforeKey, contributor.name) if field_exists?(contributor, :name)
-                tag(:PrefixToKey, contributor.last_name_prefix) if field_exists?(contributor, :last_name_prefix)
-                tag(:KeyNames, contributor.last_name) if field_exists?(contributor, :last_name) 
-                tag(:NamesAfterKey, contributor.last_name_postfix) if field_exists?(contributor, :last_name_postfix) 
+                if field_exists?(contributor, :title) && field_exists?(contributor, :last_name)   #muszą być przynajmniej te dwa pola
+                  tag(:TitlesBeforeNames, contributor.title) if field_exists?(contributor, :title)
+                  tag(:NamesBeforeKey, contributor.name) if field_exists?(contributor, :name)
+                  tag(:PrefixToKey, contributor.last_name_prefix) if field_exists?(contributor, :last_name_prefix)
+                  tag(:KeyNames, contributor.last_name) if field_exists?(contributor, :last_name) 
+                  tag(:NamesAfterKey, contributor.last_name_postfix) if field_exists?(contributor, :last_name_postfix) 
+                end
                 if contributor.respond_to?(:biography) && contributor.biography && contributor.biography.text && contributor.biography.text.strip.size > 0
                   tag(:BiographicalNote, contributor.biography.text) 
                 end
@@ -837,8 +841,8 @@ module Elibri
                   end
                   tag(:TitleElementLevel, title_part.level) #odnosi się do tego produktu tylko
                   tag(:PartNumber, title_part.part) if field_exists?(title_part, :part)
-                  tag(:TitleText, title_part.title) if field_exists?(title_part, :title)
-                  tag(:Subtitle, title_part.subtitle) if field_exists?(title_part, :subtitle)
+                  tag(:TitleText, title_part.title.strip) if field_exists?(title_part, :title)
+                  tag(:Subtitle, title_part.subtitle.strip) if field_exists?(title_part, :subtitle)
                 end
               end
             end 
@@ -851,7 +855,7 @@ module Elibri
               tag(:TitleElement) do
                 comment "Tytuł na poziomie produktu - #{Elibri::ONIX::Dict::Release_3_0::TitleElementLevel::PRODUCT}", :kind => :onix_titles
                 tag(:TitleElementLevel, Elibri::ONIX::Dict::Release_3_0::TitleElementLevel::PRODUCT) 
-                tag(:TitleText, product.original_title)
+                tag(:TitleText, product.original_title.strip)
               end
             end  
           end 
@@ -1107,7 +1111,7 @@ module Elibri
                        end
                     end
                   end
-                  if product.pack_quantity
+                  if product.pack_quantity && product.pack_quantity.to_i > 0
                     comment 'Ile produktów dostawca umieszcza w paczce'
                     tag(:PackQuantity, product.pack_quantity)
                   end
