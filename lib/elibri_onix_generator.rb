@@ -114,7 +114,7 @@ module Elibri
                                                includes_basic_meta?: true, 
                                                includes_other_texts?: true, 
                                                includes_media_files?: true,
-                                               includes_stocks?: false) unless options.has_key?(:xml_variant)
+                                               includes_stocks?: true) unless options.has_key?(:xml_variant)
 
         @xml_variant = options[:xml_variant]
         raise ":xml_variant unspecified" if @xml_variant.blank? 
@@ -135,7 +135,7 @@ module Elibri
 
         # W testach często nie chcę żadnych nagłówków - interesuje mnie tylko tag <Product>
         if options[:export_headers]
-          self.class.render_header(@builder, :elibri_onix_dialect => @elibri_onix_dialect, :pure_onix => @pure_onix) do
+          self.class.render_header(@builder, :elibri_onix_dialect => @elibri_onix_dialect, :pure_onix => @pure_onix || !@xml_variant.includes_basic_meta?) do
             render_products!
           end
         else
@@ -225,17 +225,20 @@ module Elibri
               end
               remove_tag_if_empty!(:CollateralDetail)
               #P.18 - ContentItem
-              tag(:PublishingDetail) do
-                export_publisher_info!(product) #P.19
-                export_publishing_status!(product) #PR.20
-                export_territorial_rights!(product)
-                export_sale_restrictions!(product) if product.respond_to?(:sale_restricted?) && product.sale_restricted? #PR.21
-              end 
-              remove_tag_if_empty!(:PublishingDetail)
 
-              #P.23 - related products
-              if field_exists?(product, :facsimiles)
-                export_related_products!(product)
+              if @xml_variant.includes_basic_meta?
+                tag(:PublishingDetail) do
+                  export_publisher_info!(product) #P.19
+                  export_publishing_status!(product) #PR.20
+                  export_territorial_rights!(product)
+                  export_sale_restrictions!(product) if product.respond_to?(:sale_restricted?) && product.sale_restricted? #PR.21
+                end 
+                remove_tag_if_empty!(:PublishingDetail)
+
+                #P.23 - related products
+                if field_exists?(product, :facsimiles)
+                  export_related_products!(product)
+                end
               end
               #P.24 - Market
               #P.25 - market representation
@@ -246,7 +249,9 @@ module Elibri
               # if @xml_variant.respond_to?(:cover_price?) && @xml_variant.cover_price?
               #   export_cover_price!(product) #fake, żeby jakoś te dane wysłać
               # end
-              export_elibri_extensions!(product) unless @pure_onix
+              if @xml_variant.includes_basic_meta?
+                export_elibri_extensions!(product) unless @pure_onix
+              end
             end
           end  
         end
