@@ -966,12 +966,7 @@ module Elibri
                 tag(:ResourceVersion) do
                   comment 'Zawsze 02 - Downloadable file', :kind => :onix_supporting_resources
                   tag(:ResourceForm, Elibri::ONIX::Dict::Release_3_0::ResourceForm::DOWNLOADABLE_FILE)
-                  url = attachment.file.url.gsub(/\?\d+$/, "") #usuwaj timestamp z końca
-                  if url.index("http://") || url.index("https://") #w sklepie zwraca mi całego linka, wygodniej mi jest to tutaj wychwycić
-                    tag(:ResourceLink, URI.escape(url))              
-                  else
-                    tag(:ResourceLink, URI.escape('http://' + HOST_NAME + url)) 
-                  end
+                  tag(:ResourceLink, URI.escape(attachment.url_for_onix))
                   if attachment.respond_to?(:updated_at)
                     tag(:ContentDate) do
                       tag(:ContentDateRole, Elibri::ONIX::Dict::Release_3_0::ContentDateRole::LAST_UPDATED)
