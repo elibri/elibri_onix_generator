@@ -79,8 +79,8 @@ module Elibri
 
         def attachments
           if cover_url
-            [OpenStruct.new({"onix_resource_mode" => "03", "attachment_type_code" => "01",
-                             "file" => OpenStruct.new({ "url" => cover_url })})]
+            [OpenStruct.new({"onix_resource_mode" => "03", "attachment_type_code" => "01", 
+                             "url_for_onix" => cover_url, "file" => OpenStruct.new({ "url" => cover_url })})]
           else
             []
           end
