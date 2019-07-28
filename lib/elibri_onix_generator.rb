@@ -1099,16 +1099,8 @@ module Elibri
                   tag(:ProductAvailability, pa.product_availability_onix_code) #lista 65
                   if pa.stock_info 
                     tag(:Stock) do
-                       if pa.stock_info.exact_info?
-                         tag(:OnHand, pa.stock_info.on_hand)
-                       else
-                         comment 'Nie znamy konkretnej ilości produktów na stanie'
-                         tag(:StockQuantityCoded) do
-                           comment 'Zawsze 01 - Proprietary'
-                           tag(:StockQuantityCodeType, '01') #lista 70 - proprietary
-                           tag(:StockQuantityCode, pa.stock_info.quantity_code) #low/high
-                         end
-                       end
+                      tag(:OnHand, pa.stock_info.on_hand)
+                      tag(:Proximity, pa.stock_info.proximity)
                     end
                   end
                   if product.pack_quantity && product.pack_quantity.to_i > 0
