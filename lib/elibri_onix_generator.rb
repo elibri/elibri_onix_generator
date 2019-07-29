@@ -790,7 +790,7 @@ module Elibri
                 comment 'Tylko w przypadku tłumaczy:', :kind => :onix_contributors
                 tag(:FromLanguage, contributor.language_onix_code) if field_exists?(contributor, :language_onix_code)
                 tag(:PersonName, contributor.generated_full_name) 
-                if field_exists?(contributor, :title) && field_exists?(contributor, :last_name)   #muszą być przynajmniej te dwa pola
+                if field_exists?(contributor, :name) && field_exists?(contributor, :last_name)   #muszą być przynajmniej te dwa pola
                   tag(:TitlesBeforeNames, contributor.title) if field_exists?(contributor, :title)
                   tag(:NamesBeforeKey, contributor.name) if field_exists?(contributor, :name)
                   tag(:PrefixToKey, contributor.last_name_prefix) if field_exists?(contributor, :last_name_prefix)
