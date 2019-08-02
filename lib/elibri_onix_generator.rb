@@ -977,6 +977,24 @@ module Elibri
               end
             end
           end
+
+          if product.respond_to?(:preview) && product.preview
+            options = {}
+            tag(:SupportingResource) do
+              tag(:ResourceContentType, Elibri::ONIX::Dict::Release_3_0::ResourceContentType::WIDGET) #lista 158
+              tag(:ContentAudience, Elibri::ONIX::Dict::Release_3_0::ContentAudience::UNRESTRICTED)
+              tag(:ResourceMode, Elibri::ONIX::Dict::Release_3_0::ResourceMode::TEXT) #lista 159
+              tag(:ResourceVersion) do
+                tag(:ResourceForm, Elibri::ONIX::Dict::Release_3_0::ResourceForm::EMBEDDABLE_APPLICATION)
+                tag(:ResourceLink, URI.escape(product.preview.url_for_onix))
+                tag(:ContentDate) do
+                  tag(:ContentDateRole, Elibri::ONIX::Dict::Release_3_0::ContentDateRole::LAST_UPDATED)
+                  tag(:Date, product.preview.updated_at.strftime("%Y%m%d"), dateformat: Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDD)
+                end
+              end
+            end
+          end
+
           if product.respond_to?(:digital?) && product.digital? && product.respond_to?(:excerpts) && product.excerpts.present?
             options = {}
             tag(:SupportingResource) do
