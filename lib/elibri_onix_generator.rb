@@ -1112,6 +1112,12 @@ module Elibri
                       end
                     end
                   end
+                  if field_exists?(product, :additional_info)
+                    tag(:SupplierOwnCoding) do
+                      tag(:SupplierCodeType, Elibri::ONIX::Dict::Release_3_0::SupplierOwnCodeType::SUPPLIERS_SALES_CLASSIFICATION)
+                      tag(:SupplierCodeValue, product.additional_info)
+                    end
+                  end
 
                   comment_dictionary "Typ dostępności", :ProductAvailabilityType, :indent => 10
                   tag(:ProductAvailability, pa.product_availability_onix_code) #lista 65
