@@ -1113,6 +1113,7 @@ module Elibri
                     end
                   end
                   if field_exists?(product, :additional_info)
+                    comment 'Dodatkowa klasyfikacja sprzedażowa od wydawcy - np. promocja, albo wyprzedaż'
                     tag(:SupplierOwnCoding) do
                       tag(:SupplierCodeType, Elibri::ONIX::Dict::Release_3_0::SupplierOwnCodeType::SUPPLIERS_SALES_CLASSIFICATION)
                       tag(:SupplierCodeValue, product.additional_info)
