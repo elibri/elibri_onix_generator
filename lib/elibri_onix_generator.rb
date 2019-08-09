@@ -1027,7 +1027,7 @@ module Elibri
                   tag(:ResourceLink, URI.escape(url))
                   tag(:ContentDate) do
                     tag(:ContentDateRole, Elibri::ONIX::Dict::Release_3_0::ContentDateRole::LAST_UPDATED)
-                    tag(:Date, excerpt.stored_updated_at.strftime("%Y%m%d"), dateformat: Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDD)
+                      tag(:Date, excerpt.stored_updated_at.utc.strftime("%Y%m%dT%M%SZ"), dateformat: Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDDTHHMM)
                   end
                 end
               end
