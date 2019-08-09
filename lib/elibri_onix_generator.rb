@@ -1004,10 +1004,25 @@ module Elibri
               product.excerpts.each do |excerpt|
                 tag(:ResourceVersion) do
                   tag(:ResourceForm, Elibri::ONIX::Dict::Release_3_0::ResourceForm::DOWNLOADABLE_FILE)
+                
+                  comment 'format pliku'
                   tag(:ResourceVersionFeature) do
-                    tag(:ResourceVersionFeatureType, Elibri::ONIX::Dict::Release_3_0::ResourceVersionFeatureType::FILE_FORMAT)   #lista 162
+                    tag(:ResourceVersionFeatureType, Elibri::ONIX::Dict::Release_3_0::ResourceVersionFeatureType::FILE_FORMAT)    #lista 162
                     tag(:FeatureValue, excerpt.excerpt_onix_type_name)
                   end
+
+                  comment 'md5 pliku'
+                  tag(:ResourceVersionFeature) do
+                    tag(:ResourceVersionFeatureType, Elibri::ONIX::Dict::Release_3_0::ResourceVersionFeatureType::MD5_HASH_VALUE) #lista 162
+                    tag(:FeatureValue, excerpt.file_md5)
+                  end
+
+                  comment 'wielkość pliku w bajtach'
+                  tag(:ResourceVersionFeature) do
+                    tag(:ResourceVersionFeatureType, Elibri::ONIX::Dict::Release_3_0::ResourceVersionFeatureType::SIZE_IN_BYTES)  #lista 162
+                    tag(:FeatureValue, excerpt.stored_file_size)
+                  end
+
                   url = "https://www.elibri.com.pl/excerpt/#{excerpt.id}/#{excerpt.file_md5}/#{excerpt.canonical_file_name}"
                   tag(:ResourceLink, URI.escape(url))
                   tag(:ContentDate) do
