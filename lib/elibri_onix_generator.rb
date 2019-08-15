@@ -344,7 +344,7 @@ module Elibri
         # z nowym numerem ISBN, i nową ceną, na ogół niższą, niż suma cen książek zawartych w pakiecie. 
         def export_product_form!(product)
           comment 'W tej chwili tylko 00 - pojedynczy element', :kind => :onix_product_form
-          tag(:ProductComposition, '00') #lista 2 - Single-item retail product  
+          tag(:ProductComposition, Elibri::ONIX::Dict::Release_3_0::ProductComposition::SINGLE_COMPONENT_RETAIL_PRODUCT) #lista 2
 
           if product.product_form_onix_code
             comment_dictionary "Format produktu", :ProductFormCode, :indent => 10, :kind => [:onix_product_form]
@@ -530,7 +530,7 @@ module Elibri
           if product.respond_to?(:sale_restricted_to_poland?)
             tag(:SalesRights) do
               comment "Typ restrykcji - sprzedaż tylko w wymienionym kraju, regionie, zawsze '01'", :kind => :onix_territorial_rights
-              tag(:SalesRightsType, "01") 
+              tag(:SalesRightsType, Elibri::ONIX::Dict::Release_3_0::SalesRightsType::FOR_SALE_WITH_EXLUSIVE_RIGHTS) 
               tag(:Territory) do
                 if product.sale_restricted_to_poland?
                   tag(:CountriesIncluded, "PL")
@@ -1114,7 +1114,7 @@ module Elibri
                     if pa.supplier.vatid.present?
                       tag(:SupplierIdentifier) do
                         comment "Zawsze 02 - Proprietary. Identyfikujemy dostawcę po NIP"
-                        tag(:SupplierIDType, '23') #lista 92, identyfiaktor VAT
+                        tag(:SupplierIDType, Elibri::ONIX::Dict::Release_3_0::SupplierIDType::VAT_IDENTITY_NUMBER) #lista 92, NIP
                         tag(:IDValue, pa.supplier.vatid)
                       end
                     end
@@ -1156,15 +1156,17 @@ module Elibri
                       tag(:PriceAmount, price_info.amount) 
                       tag(:Tax) do
                         comment 'VAT'
-                        tag(:TaxType, '01') #lista 171, VAT
+                        tag(:TaxType, Elibri::ONIX::Dict::Release_3_0::TaxType::VAT) #lista 171, VAT
                         tag(:TaxRatePercent, price_info.vat)
                       end
                       tag(:CurrencyCode, price_info.currency_code)
                       if field_exists?(product, :price_printed_on_product_onix_code)
                         comment_dictionary "Cena na okładce?", :PricePrintedOnProduct, :indent => 12
                         tag(:PrintedOnProduct, product.price_printed_on_product_onix_code)  #lista 174
-                        comment 'Zawsze 00 - Unknown / unspecified'
-                        tag(:PositionOnProduct, '00') #lista 142 - Position unknown or unspecified
+                        if product.price_printed_on_product_onix_code == Elibri::ONIX::Dict::Release_3_0::PricePrintedOnProduct::YES
+                          comment 'Zawsze 00 - Unknown / unspecified'
+                          tag(:PositionOnProduct, Elibri::ONIX::Dict::Release_3_0::PricePositionOnProduct::UNKNOW) #lista 142 - Position unknown or unspecified
+                        end
                       end
                     end
                   end

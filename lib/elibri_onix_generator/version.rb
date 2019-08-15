@@ -1,3 +1,3 @@
 module ElibriOnixGenerator
-  VERSION = "0.4.28"
+  VERSION = "0.4.29"
 end
