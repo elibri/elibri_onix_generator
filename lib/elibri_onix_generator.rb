@@ -970,7 +970,7 @@ module Elibri
                   if attachment.respond_to?(:updated_at)
                     tag(:ContentDate) do
                       tag(:ContentDateRole, Elibri::ONIX::Dict::Release_3_0::ContentDateRole::LAST_UPDATED)
-                      tag(:Date, attachment.updated_at.strftime("%Y%m%d"), dateformat: Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDD)
+                      tag(:Date, attachment.updated_at.utc.strftime("%Y%m%dT%H%MZ"), dateformat: Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDDTHHMM)
                     end
                   end
                 end
@@ -989,7 +989,7 @@ module Elibri
                 tag(:ResourceLink, URI.escape(product.preview.url_for_onix))
                 tag(:ContentDate) do
                   tag(:ContentDateRole, Elibri::ONIX::Dict::Release_3_0::ContentDateRole::LAST_UPDATED)
-                  tag(:Date, product.preview.updated_at.strftime("%Y%m%d"), dateformat: Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDD)
+                  tag(:Date, product.preview.updated_at.utc.strftime("%Y%m%dT%H%MZ"), dateformat: Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDDTHHMM)
                 end
               end
             end
@@ -1027,7 +1027,7 @@ module Elibri
                   tag(:ResourceLink, URI.escape(url))
                   tag(:ContentDate) do
                     tag(:ContentDateRole, Elibri::ONIX::Dict::Release_3_0::ContentDateRole::LAST_UPDATED)
-                      tag(:Date, excerpt.stored_updated_at.utc.strftime("%Y%m%dT%M%SZ"), dateformat: Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDDTHHMM)
+                      tag(:Date, excerpt.stored_updated_at.utc.strftime("%Y%m%dT%H%MZ"), dateformat: Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDDTHHMM)
                   end
                 end
               end
