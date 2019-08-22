@@ -198,6 +198,7 @@ module Elibri
                   export_product_form!(product) #PR.3 
                   export_epub_details!(product) #PR.3 
                   export_measurement!(product)
+                  export_pkwiu!(product)
                   #jak się dodaje tytuł, który nie jest samodzielne w sprzedaży?
                   #jak się dodaje tytuł, który zostanie przeceniony?
                   export_series_memberships!(product) #P.5
@@ -440,6 +441,15 @@ module Elibri
             if product.respond_to?(:kind_of_map?) && product.respond_to?(:map_scale) && product.kind_of_map? and product.map_scale
               comment 'Skala mapy - tylko dla produktów typu mapa'
               tag(:MapScale, product.map_scale)
+            end
+          end
+        end
+
+        def export_pkwiu!(product)
+          if field_exists?(product, :pkwiu)
+            tag(:ProductClassification) do
+              tag(:ProductClassificationType, Elibri::ONIX::Dict::Release_3_0::ProductClassificationType::PKWIU)
+              tag(:ProductClassificationCode, product.pkwiu)
             end
           end
         end
