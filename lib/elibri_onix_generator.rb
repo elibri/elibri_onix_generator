@@ -27,10 +27,10 @@ module Elibri
         def render_header(builder, options = {}, &block)
           builder.instruct! :xml, :version=>"1.0", :encoding=>"UTF-8"
           message_attributes = {:release => "3.0", :xmlns => "http://ns.editeur.org/onix/3.0/reference", "xmlns:elibri" => "http://elibri.com.pl/ns/extensions"}
-          message_attributes.delete('xmlns:elibri') if options[:pure_onix]
+          message_attributes.delete('xmlns:elibri') if options[:pure_onix] || options[:elibri_onix_dialect] == "3.0.2"
 
           builder.ONIXMessage message_attributes do
-            unless options[:pure_onix]
+            unless options[:pure_onix] || options[:elibri_onix_dialect] == "3.0.2"
               builder.elibri :Dialect, options[:elibri_onix_dialect] || DEFAULT_DIALECT # potrzebne, aby parser wiedział jak interpretować niektóre tagi
             end
             tag(builder, :Header) do
