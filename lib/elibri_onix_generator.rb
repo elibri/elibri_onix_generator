@@ -130,7 +130,7 @@ module Elibri
         @builder = Builder::XmlMarkup.new(:indent => 2, :target => @out)
         @elibri_onix_dialect = options[:elibri_onix_dialect]
         # Gdy true, ignorujemy rozszerzenia eLibri
-        @pure_onix = options[:pure_onix]
+        @pure_onix = options[:pure_onix] || options[:elibri_onix_dialect]  == '3.0.2'
         @skip_sourcename_and_timestamp = !!options[:skip_sourcename_and_timestamp]
 
         # W testach często nie chcę żadnych nagłówków - interesuje mnie tylko tag <Product>
@@ -347,12 +347,21 @@ module Elibri
           comment 'W tej chwili tylko 00 - pojedynczy element', :kind => :onix_product_form
           tag(:ProductComposition, Elibri::ONIX::Dict::Release_3_0::ProductComposition::SINGLE_COMPONENT_RETAIL_PRODUCT) #lista 2
 
-          if product.product_form_onix_code
-            comment_dictionary "Format produktu", :ProductFormCode, :indent => 10, :kind => [:onix_product_form]
-            tag(:ProductForm, { "PODH" => "BB", "PODS" => "BC" }[product.product_form_onix_code] || product.product_form_onix_code)
+          if @elibri_onix_dialect == "3.0.1" || !product.respond_to?(:product_form_for_3_0_2)
+            if product.product_form_onix_code
+              comment_dictionary "Format produktu", :ProductFormCode, :indent => 10, :kind => [:onix_product_form]
+              tag(:ProductForm, { "PODH" => "BB", "PODS" => "BC" }[product.product_form_onix_code] || product.product_form_onix_code)
+            end
+          elsif @elibri_onix_dialect == "3.0.2"
+            if product.product_form_onix_code
+              product_form, product_form_detail = product.product_form_for_3_0_2
+              tag(:ProductForm, product_form)
+              tag(:ProductFormDetail,  product_form_detail) if product_form_detail
+            end
+          else
+            raise ArgumentError, "Unknow dialect: #{@elibri_onix_dialect}"
           end
         end
-
 
         # @hidden_tags RecordReference NotificationType ProductIdentifier TitleDetail PublishingDetail ProductComposition 
         # @title E-booki 
