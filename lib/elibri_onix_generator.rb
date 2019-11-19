@@ -901,6 +901,10 @@ module Elibri
         # @hidden_tags RecordReference NotificationType ProductIdentifier ProductComposition ProductForm TitleDetail
         # @title Opis wydania
         def export_edition!(product)
+          if field_exists?(product, :edition_type_onix_code)
+            comment 'Typ wydania', :kind => :onix_edition
+            tag(:EditionType, product.edition_type_onix_code)
+          end
           if field_exists?(product, :edition_statement) 
             comment 'Opis wydania', :kind => :onix_edition
             tag(:EditionStatement, product.edition_statement)
