@@ -900,6 +900,14 @@ module Elibri
 
         # @hidden_tags RecordReference NotificationType ProductIdentifier ProductComposition ProductForm TitleDetail
         # @title Opis wydania
+        # System elibri pozwala na dodatkowe opisanie typu wydania w &lt;EditionType&gt;:
+        # <ul>
+        #   <li>LTE - edycja z powiększoną czcionką</li>
+        #   <li>CRI - wydanie krytyczne (z komentarzem)</li>
+        #   <li>BLL - wydanie dwujęzyczne</li>
+        #   <li>FAC - reprint</li>
+        # </ul>
+        # Dodatkowo można określić numer wydania w &lt;EditionStatement&gt;
         def export_edition!(product)
           if field_exists?(product, :edition_type_onix_code)
             comment 'Typ wydania', :kind => :onix_edition
