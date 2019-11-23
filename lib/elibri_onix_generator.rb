@@ -696,7 +696,7 @@ module Elibri
 
         # @hidden_tags RecordReference NotificationType ProductIdentifier ProductComposition ProductForm TitleDetail
         # @title Kategorie
-        # W dostarczanych przez nas plikach ONIX mogą być zawarte trzy rodzaje kategoryzacji:
+        # W dostarczanych przez nas plikach ONIX mogą być zawarte dwa rodzaje kategoryzacji:
         # <ul>
         #   <li>Thema - <a href='https://www.elibri.com.pl/thema'>browser kategorii</a>, <a href='https://www.elibri.com.pl/system/doc/thema-przyklady.pdf'>przykłady</a>,
         #       <a href='https://www.editeur.org/151/Thema/'>oficjalna strona Themy</a>
