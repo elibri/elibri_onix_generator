@@ -703,27 +703,12 @@ module Elibri
         #   <li>kategoryzacja wydawnicza</li>
         #   </li>
         # </ul>
-        # Wszystkie trzy kategoryzacje mogą współistnieć, rozróżniane przez wartości w &lt;SubjectSchemeIdentifier&gt; i  &lt;SubjectSchemeName&gt;:
+        # Te kategoryzacje mogą współistnieć, rozróżniane przez wartości w &lt;SubjectSchemeIdentifier&gt; i  &lt;SubjectSchemeName&gt;:
         # <ul>
         #   <li>&lt;SubjectSchemeIdentifier&gt; o wartościach 93 - 99 - to są kategorie i kwantyfikatory Thema
-        #   <li>&lt;SubjectSchemeIdentifier&gt; o wartości 24 oraz &lt;SubjectSchemeName&gt; o wartości elibri.com.pl - to są kategorie elibri
         #   <li>&lt;SubjectSchemeIdentifier&gt; o wartości 24 oraz &lt;SubjectSchemeName&gt; z nazwą wydawnictwa - to są kategorie wydawnicze.</li>
         # </ul>
         def export_subjects!(product)
-
-          # Kategorie wg. eLibri
-          if product.respond_to?(:elibri_product_categories)
-            product.elibri_product_categories.each_with_index do |product_category, i|
-              tag(:Subject) do
-                tag(:MainSubject) if i.zero?
-                tag(:SubjectSchemeIdentifier, Elibri::ONIX::Dict::Release_3_0::SubjectSchemeIdentifier::PROPRIETARY)
-                tag(:SubjectSchemeName, 'elibri.com.pl')
-                tag(:SubjectSchemeVersion, '1.0')
-                tag(:SubjectCode, product_category.id)
-                tag(:SubjectHeadingText, product_category.full_node_path_name)
-              end
-            end
-          end
 
           if product.respond_to?(:thema_codes_for_onix_with_heading_text)
             product.thema_codes_for_onix_with_heading_text.each do |code, text|
