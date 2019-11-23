@@ -698,7 +698,6 @@ module Elibri
         # @title Kategorie
         # W dostarczanych przez nas plikach ONIX mogą być zawarte trzy rodzaje kategoryzacji:
         # <ul>
-        #   <li><a href='https://www.elibri.com.pl/doc/api/categories'>kategoryzacja elbri (będzie wkrótce wygaszana)</a></li>
         #   <li>Thema - <a href='https://www.elibri.com.pl/thema'>browser kategorii</a>, <a href='https://www.elibri.com.pl/system/doc/thema-przyklady.pdf'>przykłady</a>,
         #       <a href='https://www.editeur.org/151/Thema/'>oficjalna strona Themy</a>
         #   <li>kategoryzacja wydawnicza</li>
