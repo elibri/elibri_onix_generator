@@ -8,7 +8,7 @@ module Elibri
 
       DOC_ORDER = ["record_identifiers", "publishing_status", "product_form", "contributors", "titles", "series_memberships", "measurement", 
                     "sale_restrictions", "territorial_rights", "audience_range", "publisher_info", "extent", "edition", "languages", "epub_details",
-                    "texts", "supporting_resources", "subjects", "elibri_extensions"]
+                    "texts", "supporting_resources", "subjects", "pform_features", "elibri_extensions"]
 
       DEFAULT_DIALECT = '3.0.1'
 
@@ -197,6 +197,7 @@ module Elibri
                 tag(:DescriptiveDetail) do
                   export_product_form!(product) #PR.3 
                   export_epub_details!(product) #PR.3 
+                  export_pform_features!(product)
                   export_measurement!(product)
                   export_pkwiu!(product)
                   #jak się dodaje tytuł, który nie jest samodzielne w sprzedaży?
@@ -425,12 +426,63 @@ module Elibri
           end
         end
 
+        # @hidden_tags RecordReference NotificationType ProductIdentifier ProductComposition TitleDetail PublishingDetail ProductSupply
+        # @title Gry planszowe i puzzle
+        # Gry planszowe i puzlle mogą zawierać dodatkowe informacje o ilości elementów (puzzli) w pudełku, czasie gry oraz dopuszczalnej ilości graczy.
+        # Każda z tych informacji jest umieszczna w blocku &lt;ProductFormFeature&gt;, w którym &lt;ProductFormFeatureType&gt; określa typ wartości, 
+        # a sama wartość jest umieszczona w tagu &lt;ProductFormFeatureValue&gt; (wartość liczbowa) lub w tagu &lt;ProductFormFeatureDescription&gt; 
+        # (przedział wartości)
+        def export_pform_features!(product)
+
+          if product.respond_to?(:number_of_pieces) && product.number_of_pieces
+            tag(:ProductFormFeature) do
+              comment_dictionary 'Typ warrtości', :ProductFormFeatureType, :indent => 10, :kind => :onix_pform_features
+
+              tag(:ProductFormFeatureType, Elibri::ONIX::Dict::Release_3_0::ProductFormFeatureType::NUMBER_OF_GAME_PIECES)
+              tag(:ProductFormFeatureValue, product.number_of_pieces)
+            end
+          end
+
+          if product.respond_to?(:players_number_from) && product.respond_to?(:players_number_to)
+            players = [product.players_number_from, product.players_number_to].compact.uniq.sort
+            if players.present?
+              tag(:ProductFormFeature) do
+                comment_dictionary 'Typ wartości', :ProductFormFeatureType, :indent => 10, :kind => :onix_pform_features
+
+                tag(:ProductFormFeatureType, Elibri::ONIX::Dict::Release_3_0::ProductFormFeatureType::GAME_PLAYERS)
+                if players.size == 1
+                  tag(:ProductFormFeatureValue, players.first)
+                else
+                  tag(:ProductFormFeatureDescription, "#{players.first}-#{players.last} graczy")
+                end
+              end
+            end
+          end
+
+          if product.respond_to?(:playing_time_from) && product.respond_to?(:playing_time_to)
+            ptime = [product.playing_time_from, product.playing_time_to].compact.uniq.sort
+            if ptime.present?
+              tag(:ProductFormFeature) do
+                comment_dictionary 'Typ wartości', :ProductFormFeatureType, :indent => 10, :kind => :onix_pform_features
+
+                tag(:ProductFormFeatureType, Elibri::ONIX::Dict::Release_3_0::ProductFormFeatureType::GAME_PLAY_TIME)
+                if ptime.size == 1
+                  tag(:ProductFormFeatureValue, ptime.first)
+                else
+                  tag(:ProductFormFeatureDescription, "#{ptime.first}-#{ptime.last} min.")
+                end
+              end
+            end
+          end
+        end
+
 
         # @hidden_tags RecordReference NotificationType ProductIdentifier ProductComposition ProductForm TitleDetail
         # @title Wymiary produktu
         # Następujące atrybuty są udostępniane:  wysokość, szerokość, grubość oraz masę produktu. Pierwsze trzy podajemy zawsze w milimetrach, masę w gramach.
         # W przypadku map eksportujemy również jej skalę w tagu &lt;MapScale&gt;
         def export_measurement!(product)
+
           if product.respond_to?(:kind_of_measurable?) && product.kind_of_measurable?
             [[product.height,    Elibri::ONIX::Dict::Release_3_0::MeasureType::HEIGHT, 'mm', 'Wysokość'],
              [product.width,     Elibri::ONIX::Dict::Release_3_0::MeasureType::WIDTH, 'mm', 'Szerokość'],
