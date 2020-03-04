@@ -295,6 +295,9 @@ module Elibri
             comment "Występuje tylko gdy NotificationType == #{Elibri::ONIX::Dict::Release_3_0::NotificationType::DELETE}", :kind => :onix_record_identifiers
             tag(:DeletionText, product.deletion_text)
           end
+          if field_exists?(product, :record_source_name)
+            tag(:RecordSourceName, product.record_source_name)
+          end
 
           if field_exists?(product, :isbn_value)
             comment 'ISBN', :kind => :onix_record_identifiers
