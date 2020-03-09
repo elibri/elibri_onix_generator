@@ -210,6 +210,7 @@ module Elibri
                   export_languages!(product) #PR.10
                   export_extent!(product) #PR.11
                   export_subjects!(product) #PR.12
+                  export_audience!(product) if field_exists?(product, :onix_audience_code_value)
                   export_audience_range!(product) if product.respond_to?(:audience_range_present?) && product.audience_range_present? #PR.13
                 end 
               end
@@ -748,6 +749,13 @@ module Elibri
           end
         end
 
+
+        def export_audience!(product) 
+          tag(:Audience) do
+            tag(:AudienceCodeType, Elibri::ONIX::Dict::Release_3_0::AudienceCodeType::ONIX)
+            tag(:AudienceCodeValue, product.onix_audience_code_value)
+          end
+        end
 
         # @hidden_tags RecordReference NotificationType ProductIdentifier ProductComposition ProductForm TitleDetail
         # @title Kategorie
