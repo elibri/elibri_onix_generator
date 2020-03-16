@@ -239,7 +239,7 @@ module Elibri
                 remove_tag_if_empty!(:PublishingDetail)
 
                 #P.23 - related products
-                if field_exists?(product, :facsimiles)
+                if field_exists?(product, :facsimiles_for_onix)
                   export_related_products!(product)
                 end
               end
@@ -1157,7 +1157,7 @@ module Elibri
           tag(:RelatedMaterial) do
 
             comment_dictionary "Typy relacji", :ProductRelationType, :indent => 10, :kind => :onix_related_products
-            product.facsimiles.each do |facsimile|
+            product.facsimiles_for_onix.each do |facsimile|
               tag(:RelatedProduct) do
                 tag(:ProductRelationCode, Elibri::ONIX::Dict::Release_3_0::ProductRelationType::FACSIMILES)
                 tag(:ProductIdentifier) do
