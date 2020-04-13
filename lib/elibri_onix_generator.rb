@@ -317,6 +317,13 @@ module Elibri
             end
           end
 
+          if field_exists?(product, :doi)
+            tag(:ProductIdentifier) do
+              tag(:ProductIDType, Elibri::ONIX::Dict::Release_3_0::ProductIDType::DOI)
+              tag(:IDValue, product.doi)
+            end
+          end
+
           if product.respond_to?(:external_identifier) && product.external_identifier
             tag(:ProductIdentifier) do
               tag(:ProductIDType, Elibri::ONIX::Dict::Release_3_0::ProductIDType::PROPRIETARY) #lista 5
@@ -355,7 +362,7 @@ module Elibri
           if @elibri_onix_dialect == "3.0.1" || !product.respond_to?(:product_form_for_3_0_2)
             if product.product_form_onix_code
               comment_dictionary "Format produktu", :ProductFormCode, :indent => 10, :kind => [:onix_product_form]
-              tag(:ProductForm, { "PODH" => "BB", "PODS" => "BC" }[product.product_form_onix_code] || product.product_form_onix_code)
+              tag(:ProductForm, { "PODH" => "BB", "PODS" => "BC", "OPEN_ACCESS" => "EA" }[product.product_form_onix_code] || product.product_form_onix_code)
             end
           elsif @elibri_onix_dialect == "3.0.2"
             if product.product_form_onix_code
@@ -424,6 +431,18 @@ module Elibri
                     comment_dictionary "Jednostka limitu", :EpubUsageUnit, :indent => 12, :kind => :onix_epub_details
                     tag(:EpubUsageUnit, product.epub_publication_preview_unit_onix_code)
                   end
+                end
+              end
+            end
+          end
+
+          if field_exists?(product, :epub_license)
+            tag(:EpubLicense) do
+              tag(:EpubLicenseName, product.epub_license.name)
+              if field_exists?(product.epub_license, :url)
+                tag(:EpubLicenseExpression) do
+                  tag(:EpubLicenseExpressionType, Elibri::ONIX::Dict::Release_3_0::EpubLicenseExpressionType::HUMAN_READABLE)
+                  tag(:EpubLicenseExpressionLink, product.epub_license.url)
                 end
               end
             end
@@ -603,14 +622,16 @@ module Elibri
         # dopuszczający sprzedaż na całym świecie. Informacja o ograniczeniu jest zawarta w obręcie <strong>&lt;SalesRights&gt;</strong>
         def export_territorial_rights!(product)
           if product.respond_to?(:sale_restricted_to_poland?)
-            tag(:SalesRights) do
-              comment "Typ restrykcji - sprzedaż tylko w wymienionym kraju, regionie, zawsze '01'", :kind => :onix_territorial_rights
-              tag(:SalesRightsType, Elibri::ONIX::Dict::Release_3_0::SalesRightsType::FOR_SALE_WITH_EXLUSIVE_RIGHTS) 
-              tag(:Territory) do
-                if product.sale_restricted_to_poland?
-                  tag(:CountriesIncluded, "PL")
-                else
-                  tag(:RegionsIncluded, "WORLD")
+            if !(product.respond_to?(:unpriced_item?) && product.unpriced_item?)
+              tag(:SalesRights) do
+                comment "Typ restrykcji - sprzedaż tylko w wymienionym kraju, regionie, zawsze '01'", :kind => :onix_territorial_rights
+                tag(:SalesRightsType, Elibri::ONIX::Dict::Release_3_0::SalesRightsType::FOR_SALE_WITH_EXLUSIVE_RIGHTS) 
+                tag(:Territory) do
+                  if product.sale_restricted_to_poland?
+                    tag(:CountriesIncluded, "PL")
+                  else
+                    tag(:RegionsIncluded, "WORLD")
+                  end
                 end
               end
             end
@@ -805,6 +826,17 @@ module Elibri
               end
             end
           end
+
+          if product.respond_to?(:keywords) && product.keywords.size > 0
+            by_lan = product.keywords.group_by { |k| k.language && k.language.size > 0 ? k.language : "pol" }
+
+            tag(:Subject) do
+              tag(:SubjectSchemeIdentifier, Elibri::ONIX::Dict::Release_3_0::SubjectSchemeIdentifier::KEYWORDS)
+              by_lan.keys.sort.each do |language|
+                tag(:SubjectHeadingText, by_lan[language].map(&:keyword).join("; "), language: language)
+              end
+            end
+          end
         end
 
 
@@ -912,16 +944,27 @@ module Elibri
                   end
                   tag(:TitleElementLevel, title_part.level) #odnosi się do tego produktu tylko
                   tag(:PartNumber, title_part.part) if field_exists?(title_part, :part)
-                  tag(:TitleText, title_part.title.strip) if field_exists?(title_part, :title)
-                  tag(:Subtitle, title_part.subtitle.strip) if field_exists?(title_part, :subtitle)
+                  tag(:TitleText, title_part.title.strip, language: "pol") if field_exists?(title_part, :title)
+                  tag(:Subtitle, title_part.subtitle.strip, language: "pol") if field_exists?(title_part, :subtitle)
                 end
               end
             end 
           end
 
+          if field_exists?(product, :title_eng)
+            tag(:TitleDetail) do
+              tag(:TitleType, Elibri::ONIX::Dict::Release_3_0::TitleType::DISTINCTIVE_TITLE)
+              tag(:TitleElement) do
+                tag(:TitleElementLevel, Elibri::ONIX::Dict::Release_3_0::TitleElementLevel::PRODUCT)
+                tag(:TitleText, product.title_eng.strip, language: "eng")
+              end
+            end
+          end
+
+
           if field_exists?(product, :original_title)
             tag(:TitleDetail) do
-              comment "Tytuł w języku oryginału - #{Elibri::ONIX::Dict::Release_3_0::TitleType::DISTINCTIVE_TITLE}", :kind => :onix_titles
+              comment "Tytuł w języku oryginału - #{Elibri::ONIX::Dict::Release_3_0::TitleType::ORIGINAL_TITLE}", :kind => :onix_titles
               tag(:TitleType, Elibri::ONIX::Dict::Release_3_0::TitleType::ORIGINAL_TITLE)
               tag(:TitleElement) do
                 comment "Tytuł na poziomie produktu - #{Elibri::ONIX::Dict::Release_3_0::TitleElementLevel::PRODUCT}", :kind => :onix_titles
@@ -1011,14 +1054,27 @@ module Elibri
                 text_source = {}
               end
 
-              tag(:Text, text_source) do |builder|
+              tag(:Text, text_source.merge(language: "pol")) do |builder|
                 builder.cdata!(other_text.text)
+              end
+
+              if field_exists?(other_text, :text_eng)
+                tag(:Text, language: "eng") do |builder|
+                  builder.cdata!(other_text.text_eng)
+                end
               end
 
               tag(:TextAuthor, other_text.text_author) if field_exists?(other_text, :text_author) 
               tag(:SourceTitle, other_text.source_title) if field_exists?(other_text, :source_title) 
             end
           end  
+          if field_exists?(product, :open_access_statement)
+            tag(:TextContent) do
+              tag(:TextType, Elibri::ONIX::Dict::Release_3_0::OtherTextType::OPEN_ACCESS_STATEMENT)
+              tag(:ContentAudience, Elibri::ONIX::Dict::Release_3_0::ContentAudience::UNRESTRICTED)
+              tag(:Text, product.open_access_statement)
+            end
+          end
         end
 
 
@@ -1199,9 +1255,13 @@ module Elibri
                     tag(:SupplierName, pa.supplier.name)
                     tag(:TelephoneNumber, pa.supplier.phone) if field_exists?(pa.supplier, :phone)
                     tag(:EmailAddress, pa.supplier.email) if field_exists?(pa.supplier, :email)
-                    if field_exists?(pa.supplier, :website)
-                      tag(:Website) do
-                        tag(:WebsiteLink, pa.supplier.website) 
+                    if field_exists?(pa, :website)
+                      Array(pa.website).each do |website|
+                        tag(:Website) do
+                          tag(:WebsiteRole, website.role)
+                          tag(:WebsiteDescription, website.description)
+                          tag(:WebsiteLink, website.url) 
+                        end
                       end
                     end
                   end
@@ -1215,35 +1275,41 @@ module Elibri
 
                   comment_dictionary "Typ dostępności", :ProductAvailabilityType, :indent => 10
                   tag(:ProductAvailability, pa.product_availability_onix_code) #lista 65
-                  if pa.stock_info 
+                  if field_exists?(pa, :stock_info) 
                     tag(:Stock) do
                       tag(:OnHand, pa.stock_info.on_hand)
                       tag(:Proximity, pa.stock_info.proximity)
                     end
                   end
-                  if product.pack_quantity && product.pack_quantity.to_i > 0
+                  if field_exists?(product, :pack_quantity) && product.pack_quantity.to_i > 0
                     comment 'Ile produktów dostawca umieszcza w paczce'
                     tag(:PackQuantity, product.pack_quantity)
                   end
 
-                  pa.price_infos.each do |price_info|
-                    tag(:Price) do
-                      comment_dictionary "Typ ceny", :PriceTypeCode, :indent => 12
-                      tag(:PriceType, Elibri::ONIX::Dict::Release_3_0::PriceTypeCode::RRP_WITH_TAX) #lista 58
-                      tag(:MinimumOrderQuantity, price_info.minimum_order_quantity) if price_info.minimum_order_quantity
-                      tag(:PriceAmount, price_info.amount) 
-                      tag(:Tax) do
-                        comment 'VAT'
-                        tag(:TaxType, Elibri::ONIX::Dict::Release_3_0::TaxType::VAT) #lista 171, VAT
-                        tag(:TaxRatePercent, price_info.vat)
-                      end
-                      tag(:CurrencyCode, price_info.currency_code)
-                      if field_exists?(product, :price_printed_on_product_onix_code)
-                        comment_dictionary "Cena na okładce?", :PricePrintedOnProduct, :indent => 12
-                        tag(:PrintedOnProduct, product.price_printed_on_product_onix_code)  #lista 174
-                        if product.price_printed_on_product_onix_code == Elibri::ONIX::Dict::Release_3_0::PricePrintedOnProduct::YES
-                          comment 'Zawsze 00 - Unknown / unspecified'
-                          tag(:PositionOnProduct, Elibri::ONIX::Dict::Release_3_0::PricePositionOnProduct::UNKNOW) #lista 142 - Position unknown or unspecified
+                  if product.respond_to?(:unpriced_item?) && product.unpriced_item?
+                    tag(:UnpricedItemType, Elibri::ONIX::Dict::Release_3_0::UnpricedItemType::FREE_OF_CHARGE)
+                  end
+
+                  if pa.respond_to?(:price_infos)
+                    pa.price_infos.each do |price_info|
+                      tag(:Price) do
+                        comment_dictionary "Typ ceny", :PriceTypeCode, :indent => 12
+                        tag(:PriceType, Elibri::ONIX::Dict::Release_3_0::PriceTypeCode::RRP_WITH_TAX) #lista 58
+                        tag(:MinimumOrderQuantity, price_info.minimum_order_quantity) if price_info.minimum_order_quantity
+                        tag(:PriceAmount, price_info.amount) 
+                        tag(:Tax) do
+                          comment 'VAT'
+                          tag(:TaxType, Elibri::ONIX::Dict::Release_3_0::TaxType::VAT) #lista 171, VAT
+                          tag(:TaxRatePercent, price_info.vat)
+                        end
+                        tag(:CurrencyCode, price_info.currency_code)
+                        if field_exists?(product, :price_printed_on_product_onix_code)
+                          comment_dictionary "Cena na okładce?", :PricePrintedOnProduct, :indent => 12
+                          tag(:PrintedOnProduct, product.price_printed_on_product_onix_code)  #lista 174
+                          if product.price_printed_on_product_onix_code == Elibri::ONIX::Dict::Release_3_0::PricePrintedOnProduct::YES
+                            comment 'Zawsze 00 - Unknown / unspecified'
+                            tag(:PositionOnProduct, Elibri::ONIX::Dict::Release_3_0::PricePositionOnProduct::UNKNOW) #lista 142 - Position unknown or unspecified
+                          end
                         end
                       end
                     end
