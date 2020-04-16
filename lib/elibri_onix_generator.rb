@@ -785,12 +785,14 @@ module Elibri
         #   <li>Thema - <a href='https://www.elibri.com.pl/thema'>browser kategorii</a>, <a href='https://www.elibri.com.pl/system/doc/thema-przyklady.pdf'>przykłady</a>,
         #       <a href='https://www.editeur.org/151/Thema/'>oficjalna strona Themy</a>
         #   <li>kategoryzacja wydawnicza</li>
+        #   <li>słowa kluczowe (tagi)
         #   </li>
         # </ul>
         # Te kategoryzacje mogą współistnieć, rozróżniane przez wartości w &lt;SubjectSchemeIdentifier&gt; i  &lt;SubjectSchemeName&gt;:
         # <ul>
         #   <li>&lt;SubjectSchemeIdentifier&gt; o wartościach 93 - 99 - to są kategorie i kwantyfikatory Thema
         #   <li>&lt;SubjectSchemeIdentifier&gt; o wartości 24 oraz &lt;SubjectSchemeName&gt; z nazwą wydawnictwa - to są kategorie wydawnicze.</li>
+        #   <li>&lt;SubjectSchemeIdentifier&gt; o wartości 20 - w polu &lt;SubjectHeadingText&gt; są słowa kluczowe rozdzielone średnikiem.</li>
         # </ul>
         def export_subjects!(product)
 
