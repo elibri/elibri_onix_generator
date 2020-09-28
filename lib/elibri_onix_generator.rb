@@ -652,8 +652,10 @@ module Elibri
               #lista 71 - For sale only through designated retailer, though not under retailer's own brand/imprint. 
               comment "Typ restrykcji - używamy tylko #{Elibri::ONIX::Dict::Release_3_0::SalesRestrictionType::RETAILER_EXCLUSIVE} (sprzedaż tylko poprzez wybranego detalistę)", :kind => :onix_sale_restrictions
               tag(:SalesRestrictionType, Elibri::ONIX::Dict::Release_3_0::SalesRestrictionType::RETAILER_EXCLUSIVE) 
-              tag(:SalesOutlet) do
-                tag(:SalesOutletName, product.sale_restricted_for)
+              if field_exists?(product, :sale_restricted_for)
+                tag(:SalesOutlet) do
+                  tag(:SalesOutletName, product.sale_restricted_for)
+                end
               end
               comment "Ograniczenie wygasa #{product.sale_restricted_to.strftime("%d.%m.%Y")}", :kind => :onix_sale_restrictions
               tag(:EndDate, product.sale_restricted_to.strftime("%Y%m%d"))
