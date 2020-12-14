@@ -831,6 +831,16 @@ module Elibri
             end
           end
 
+          if product.respond_to?(:polish_aggregated_categories)
+            product.polish_aggregated_categories.each do |category|
+              tag(:Subject) do
+                tag(:SubjectSchemeIdentifier, Elibri::ONIX::Dict::Release_3_0::SubjectSchemeIdentifier::PROPRIETARY)
+                tag(:SubjectSchemeName, "Polish Aggregated Category")
+                tag(:SubjectHeadingText, category)
+              end
+            end
+          end
+
           if product.respond_to?(:keywords) && product.keywords.size > 0
             by_lan = product.keywords.group_by { |k| k.language && k.language.size > 0 ? k.language : "pol" }
 
