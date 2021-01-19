@@ -412,28 +412,6 @@ module Elibri
               comment_dictionary "Zabezpieczenie", :EpubTechnicalProtection, :indent => 10, :kind => :onix_epub_details
               tag(:EpubTechnicalProtection, product.epub_technical_protection_onix_code)
             end
-
-            if product.epub_fragment_info? && product.epub_publication_preview_usage_status_onix_code.present? #czasem brakuje informacji o fragmencie, nawet gdy jest deklaracja,
-                                                                                                               #że taka informacja powinna byc
-              tag(:EpubUsageConstraint) do
-                comment "Rodzaj ograniczenia - w tym przypadku zawsze dotyczy dostępności fragmentu książki", :indent => 12, :kind => :onix_epub_details
-                tag(:EpubUsageType, Elibri::ONIX::Dict::Release_3_0::EpubUsageType::PREVIEW) 
-
-                comment_dictionary "Jaka jest decyzja wydawcy?", :EpubUsageStatus, :indent => 12, :kind => :onix_epub_details
-                tag(:EpubUsageStatus, product.epub_publication_preview_usage_status_onix_code)
-                if product.epub_publication_preview_usage_status_onix_code == Elibri::ONIX::Dict::Release_3_0::EpubUsageStatus::LIMITED
-                  tag(:EpubUsageLimit) do
-                    if product.epub_publication_preview_unit_onix_code == Elibri::ONIX::Dict::Release_3_0::EpubUsageUnit::PERCENTAGE
-                      tag(:Quantity, product.epub_publication_preview_percentage_limit)
-                    elsif product.epub_publication_preview_unit_onix_code == Elibri::ONIX::Dict::Release_3_0::EpubUsageUnit::CHARACTERS
-                      tag(:Quantity, product.epub_publication_preview_characters_limit)
-                    end
-                    comment_dictionary "Jednostka limitu", :EpubUsageUnit, :indent => 12, :kind => :onix_epub_details
-                    tag(:EpubUsageUnit, product.epub_publication_preview_unit_onix_code)
-                  end
-                end
-              end
-            end
           end
 
           if field_exists?(product, :epub_license)
