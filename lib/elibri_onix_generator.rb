@@ -384,14 +384,6 @@ module Elibri
         # #{Elibri::ONIX::Dict::Release_3_0::ProductFormDetail::ALL.map(&:name).to_sentence(:last_word_connector => ' lub ')}<br/>
         # 
         # @render onix_epub_details_example
-        #
-        # Wydawca może również umieścić informacje o tym, czy pozwala na publikację fragmentu książki, a jeśli tak,
-        # to czy narzuca ograniczenie co do wielkości fragmentu (w ilości znaków albo procentowo). Ta informacja ma tylko wtedy 
-        # znaczenie, gdy dystrybutor samodzielnie dokonuje konwersji, a tym samym tworzy ebooka z fragmentem publikacji. 
-        # Wydawnictwa, które samodzielnie konwertują książki nie będą publikować tej informacji.<br/>
-        # @render onix_unlimited_book_sample_example
-        # @render onix_prohibited_book_sample_example
-        # @render onix_limited_book_sample_example
         # <br/>
         # Wydawnictwa podają też w systemie eLibri informację, czy prawo do sprzedaży ebook-a jest bezterminowe.
         # W takim przypadku w opisie produktu wystąpi pusty tag <strong>&lt;elibri:SaleNotRestricted&gt;</strong> (ostatnie trzy przykłady).<br/><br/>
