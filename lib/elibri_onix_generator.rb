@@ -1059,6 +1059,14 @@ module Elibri
               tag(:Text, product.open_access_statement)
             end
           end
+
+          if field_exists?(product, :box_content)
+            tag(:TextContent) do
+              tag(:TextType, Elibri::ONIX::Dict::Release_3_0::OtherTextType::LIST_OF_CONTENTS)
+              tag(:ContentAudience, Elibri::ONIX::Dict::Release_3_0::ContentAudience::UNRESTRICTED)
+              tag(:Text, product.box_content)
+            end
+          end
         end
 
 
