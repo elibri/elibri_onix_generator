@@ -35,9 +35,7 @@ module Elibri
             end
             tag(builder, :Header) do
               tag(builder, :Sender) do
-                tag(builder, :SenderName, "Elibri.com.pl")
-                tag(builder, :ContactName, "Tomasz Meka")
-                tag(builder, :EmailAddress, "kontakt@elibri.com.pl")
+                tag(builder, :SenderName, options[:sender_name] || "Elibri.com.pl")
               end
               tag(builder, :SentDateTime, Date.today.strftime("%Y%m%d"))
             end
@@ -132,11 +130,12 @@ module Elibri
         # Gdy true, ignorujemy rozszerzenia eLibri
         @pure_onix = options[:pure_onix] || options[:elibri_onix_dialect]  == '3.0.2'
         @skip_sourcename_and_timestamp = !!options[:skip_sourcename_and_timestamp]
+        @sender_name = options[:sender_name]
         @lan = options[:lan] || "pol"
 
         # W testach często nie chcę żadnych nagłówków - interesuje mnie tylko tag <Product>
         if options[:export_headers]
-          self.class.render_header(@builder, :elibri_onix_dialect => @elibri_onix_dialect, :pure_onix => @pure_onix || !@xml_variant.includes_basic_meta?) do
+          self.class.render_header(@builder, elibri_onix_dialect: @elibri_onix_dialect, pure_onix: @pure_onix || !@xml_variant.includes_basic_meta?, sender_name: @sender_name) do
             render_products!
           end
         else
