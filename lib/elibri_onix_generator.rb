@@ -199,7 +199,8 @@ module Elibri
                   export_epub_details!(product) #PR.3
                   export_pform_features!(product)
                   export_measurement!(product)
-                  export_pkwiu!(product)
+                  export_country_of_manufacture!(product)
+                  export_classification!(product)
                   #jak się dodaje tytuł, który nie jest samodzielne w sprzedaży?
                   #jak się dodaje tytuł, który zostanie przeceniony?
                   export_series_memberships!(product) #P.5
@@ -242,12 +243,15 @@ module Elibri
                 if field_exists?(product, :facsimiles_for_onix)
                   export_related_products!(product)
                 end
+
+                export_masters_info!(product)
               end
               #P.24 - Market
               #P.25 - market representation
               if @xml_variant.includes_stocks?
                 export_supply_details!(product) #PR.26
               end
+
               #fake dla exportu ze sklepu - w elibri ten kod nie zadziała
               # if @xml_variant.respond_to?(:cover_price?) && @xml_variant.cover_price?
               #   export_cover_price!(product) #fake, żeby jakoś te dane wysłać
@@ -400,7 +404,7 @@ module Elibri
           end
 
           if product.respond_to?(:digital?) && product.digital?
-            if product.epub_technical_protection
+            if field_exists?(product, :epub_technical_protection_onix_code)
               comment_dictionary "Zabezpieczenie", :EpubTechnicalProtection, :indent => 10, :kind => :onix_epub_details
               tag(:EpubTechnicalProtection, product.epub_technical_protection_onix_code)
             end
@@ -499,13 +503,30 @@ module Elibri
           end
         end
 
-        def export_pkwiu!(product)
+        def export_country_of_manufacture!(product)
+
+          if field_exists?(product, :country_of_manufacture)
+            tag(:CountryOfManufacture, product.country_of_manufacture)
+          end
+
+        end
+
+        def export_classification!(product)
+
           if field_exists?(product, :pkwiu)
             tag(:ProductClassification) do
               tag(:ProductClassificationType, Elibri::ONIX::Dict::Release_3_0::ProductClassificationType::PKWIU)
               tag(:ProductClassificationCode, product.pkwiu)
             end
           end
+
+          if field_exists?(product, :cn_code)
+            tag(:ProductClassification) do
+              tag(:ProductClassificationType, Elibri::ONIX::Dict::Release_3_0::ProductClassificationType::CN)
+              tag(:ProductClassificationCode, product.cn_code)
+            end
+          end
+
         end
 
 
@@ -1312,6 +1333,40 @@ module Elibri
           end
         end
 
+        def export_masters_info!(product)
+          if product.respond_to?(:digital_or_pod?) && product.digital_or_pod? && product.respond_to?(:masters) && product.masters.size > 0
+            tag("ProductionDetail") do
+              tag("ProductionManifest") do
+                tag("BodyManifest") do
+                  product.masters.each_with_index do |master, idx|
+                    tag("BodyResource") do
+                      tag("SequenceNumber", idx + 1)
+                      tag("ResourceIdentifier") do
+                        tag("ResourceIDType", Elibri::ONIX::Dict::Release_3_0::ResourceIDType::PROPRIETARY)
+                        tag("IDTypeName", "elibri internal numerical ID")
+                        tag("IDValue", master.id)
+                      end
+                      tag("ResourceFileFeature") do
+                        tag("ResourceFileFeatureType", Elibri::ONIX::Dict::Release_3_0::ResourceFileFeatureType::EXACT_FILE_SIZE)
+                        tag("ResourceFileFeatureValue", master.stored_file_size)
+                      end
+
+                      tag("ResourceFileFeature") do
+                        tag("ResourceFileFeatureType", Elibri::ONIX::Dict::Release_3_0::ResourceFileFeatureType::MD5)
+                        tag("ResourceFileFeatureValue", master.file_md5)
+                      end
+                      tag("ResourceFileLink", master.stored_file_name)
+                      tag("ResourceFileDate") do
+                        tag("ResourceFileDateRole", Elibri::ONIX::Dict::Release_3_0::ContentDateRole::LAST_UPDATED)
+                        tag("Date", master.stored_updated_at.utc.strftime("%Y%m%dT%H%MZ"), dateformat: Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDDTHHMM)
+                      end
+                    end
+                  end
+                end
+              end
+            end
+          end
+        end
 
         # @title Rozszerzenia eLibri dla ONIX
         # @hidden_tags RecordReference NotificationType ProductIdentifier DescriptiveDetail
