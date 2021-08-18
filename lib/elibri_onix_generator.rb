@@ -480,7 +480,7 @@ module Elibri
         # W przypadku map eksportujemy również jej skalę w tagu &lt;MapScale&gt;
         def export_measurement!(product)
 
-          if product.respond_to?(:kind_of_measurable?) && product.kind_of_measurable?
+          if product.respond_to?(:kind_of_measurable?) && product.kind_of_meMapScaleasurable?
             [[product.height,    Elibri::ONIX::Dict::Release_3_0::MeasureType::HEIGHT, 'mm', 'Wysokość'],
              [product.width,     Elibri::ONIX::Dict::Release_3_0::MeasureType::WIDTH, 'mm', 'Szerokość'],
              [product.thickness, Elibri::ONIX::Dict::Release_3_0::MeasureType::THICKNESS, 'mm', 'Grubość'],
@@ -580,7 +580,7 @@ module Elibri
               comment 'Jeśli 01 - data publikacji', :kind => :onix_publishing_status
               tag(:PublishingDateRole, Elibri::ONIX::Dict::Release_3_0::PublishingDateRole::PUBLICATION_DATE) #lista 163
               comment_dictionary "Format daty", :DateFormat, :indent => 12, :kind => :onix_publishing_status
-              tag(:DateFormat, format_code)  #lista 55
+              tag(:DateFormat, format_code) if @elibri_onix_dialect == '3.0.1' #lista 55
               tag(:Date, date, dateformat: format_code)
             end
           end
@@ -589,7 +589,7 @@ module Elibri
             tag(:PublishingDate) do
               comment "Jeśli 27 - to data początku przyjmowania zamówień na dany tytuł"
               tag(:PublishingDateRole, Elibri::ONIX::Dict::Release_3_0::PublishingDateRole::PREORDER_EMBARGO_DATE) #lista 163
-              tag(:DateFormat, Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDD)
+              tag(:DateFormat, Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDD) if @elibri_onix_dialect == '3.0.1'
               tag(:Date, product.distribution_start.strftime("%Y%m%d"), dateformat: Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDD)
             end
           end
@@ -599,7 +599,7 @@ module Elibri
               tag(:PublishingDate) do
                 comment "Jeśli 13 - to data po której książka zostanie wycofana z rynku"
                 tag(:PublishingDateRole, Elibri::ONIX::Dict::Release_3_0::PublishingDateRole::OUT_OF_PRINT_DATE) #lista 163
-                tag(:DateFormat, Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDD)
+                tag(:DateFormat, Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDD) if @elibri_onix_dialect == '3.0.1'
                 tag(:Date, product.epub_sale_restricted_to.strftime("%Y%m%d"), dateformat: Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDD)
               end
             end
