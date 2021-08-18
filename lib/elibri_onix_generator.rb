@@ -480,7 +480,7 @@ module Elibri
         # W przypadku map eksportujemy również jej skalę w tagu &lt;MapScale&gt;
         def export_measurement!(product)
 
-          if product.respond_to?(:kind_of_measurable?) && product.kind_of_meMapScaleasurable?
+          if product.respond_to?(:kind_of_measurable?) && product.kind_of_measurable?
             [[product.height,    Elibri::ONIX::Dict::Release_3_0::MeasureType::HEIGHT, 'mm', 'Wysokość'],
              [product.width,     Elibri::ONIX::Dict::Release_3_0::MeasureType::WIDTH, 'mm', 'Szerokość'],
              [product.thickness, Elibri::ONIX::Dict::Release_3_0::MeasureType::THICKNESS, 'mm', 'Grubość'],
