@@ -707,6 +707,12 @@ module Elibri
                 end
               end
               tag(:PublisherName, product.publisher_name_for_onix)
+              if product.respond_to?(:publisher_product_url) && product.publisher_product_url.present?
+                tag(:Website) do
+                  tag(:WebsiteRole, Elibri::ONIX::Dict::Release_3_0::WebsiteRole::PUBLISHER_WEBPAGE_FOR_SPECIFIED_WORK)
+                  tag(:WebsiteLink, product.publisher_product_url)
+                end
+              end
             end
           end
 
