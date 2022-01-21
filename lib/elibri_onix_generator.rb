@@ -1119,7 +1119,7 @@ module Elibri
                 tag(:ResourceVersion) do
                   comment 'Zawsze 02 - Downloadable file', :kind => :onix_supporting_resources
                   tag(:ResourceForm, Elibri::ONIX::Dict::Release_3_0::ResourceForm::DOWNLOADABLE_FILE)
-                  tag(:ResourceLink, URI.escape(attachment.url_for_onix))
+                  tag(:ResourceLink, URI::Parser.new.escape(attachment.url_for_onix))
                   if attachment.respond_to?(:updated_at)
                     tag(:ContentDate) do
                       tag(:ContentDateRole, Elibri::ONIX::Dict::Release_3_0::ContentDateRole::LAST_UPDATED)
@@ -1139,7 +1139,7 @@ module Elibri
               tag(:ResourceMode, Elibri::ONIX::Dict::Release_3_0::ResourceMode::TEXT) #lista 159
               tag(:ResourceVersion) do
                 tag(:ResourceForm, Elibri::ONIX::Dict::Release_3_0::ResourceForm::EMBEDDABLE_APPLICATION)
-                tag(:ResourceLink, URI.escape(product.preview.url_for_onix))
+                tag(:ResourceLink, URI::Parser.new.escape(product.preview.url_for_onix))
                 tag(:ContentDate) do
                   tag(:ContentDateRole, Elibri::ONIX::Dict::Release_3_0::ContentDateRole::LAST_UPDATED)
                   tag(:Date, product.preview.updated_at.utc.strftime("%Y%m%dT%H%MZ"), dateformat: Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDDTHHMM)
@@ -1177,7 +1177,7 @@ module Elibri
                   end
 
                   url = "https://www.elibri.com.pl/excerpt/#{excerpt.id}/#{excerpt.file_md5}/#{excerpt.canonical_file_name}"
-                  tag(:ResourceLink, URI.escape(url))
+                  tag(:ResourceLink, URI::Parser.new.escape(url))
                   tag(:ContentDate) do
                     tag(:ContentDateRole, Elibri::ONIX::Dict::Release_3_0::ContentDateRole::LAST_UPDATED)
                       tag(:Date, excerpt.stored_updated_at.utc.strftime("%Y%m%dT%H%MZ"), dateformat: Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDDTHHMM)
