@@ -1322,6 +1322,12 @@ module Elibri
                           tag(:TaxRatePercent, price_info.vat)
                         end
                         tag(:CurrencyCode, price_info.currency_code)
+                        if field_exists?(price_info, :price_date)
+                          tag(:PriceDate) do
+                            tag(:PriceDateRole, price_info.price_date.price_date_role)
+                            tag(:Date, price_info.price_date.date.strftime("%Y%m%d"))
+                          end
+                        end
                         if field_exists?(product, :price_printed_on_product_onix_code)
                           comment_dictionary "Cena na okładce?", :PricePrintedOnProduct, :indent => 12
                           tag(:PrintedOnProduct, product.price_printed_on_product_onix_code)  #lista 174
