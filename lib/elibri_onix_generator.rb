@@ -1176,8 +1176,7 @@ module Elibri
                     tag(:FeatureValue, excerpt.stored_file_size)
                   end
 
-                  url = "https://www.elibri.com.pl/excerpt/#{excerpt.id}/#{excerpt.file_md5}/#{excerpt.canonical_file_name}"
-                  tag(:ResourceLink, url)
+                  tag(:ResourceLink, excerpt.public_url)
                   tag(:ContentDate) do
                     tag(:ContentDateRole, Elibri::ONIX::Dict::Release_3_0::ContentDateRole::LAST_UPDATED)
                       tag(:Date, excerpt.stored_updated_at.utc.strftime("%Y%m%dT%H%MZ"), dateformat: Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDDTHHMM)
@@ -1419,7 +1418,7 @@ module Elibri
               if product.excerpts.size > 0
                  tag("elibri:excerpts") do
                    product.excerpts.each do |excerpt|
-                     tag("elibri:excerpt", "https://www.elibri.com.pl/excerpt/#{excerpt.id}", :md5 => excerpt.file_md5, :file_size => excerpt.stored_file_size,
+                     tag("elibri:excerpt", excerpt.public_url, :md5 => excerpt.file_md5, :file_size => excerpt.stored_file_size,
                                            :file_type => excerpt.file_type, :updated_at => excerpt.stored_updated_at.to_datetime.xmlschema, :id => excerpt.id)
                    end
                  end
