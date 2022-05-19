@@ -1119,6 +1119,19 @@ module Elibri
                 tag(:ResourceVersion) do
                   comment 'Zawsze 02 - Downloadable file', :kind => :onix_supporting_resources
                   tag(:ResourceForm, Elibri::ONIX::Dict::Release_3_0::ResourceForm::DOWNLOADABLE_FILE)
+
+                  comment 'md5 pliku'
+                  tag(:ResourceVersionFeature) do
+                    tag(:ResourceVersionFeatureType, Elibri::ONIX::Dict::Release_3_0::ResourceVersionFeatureType::MD5_HASH_VALUE) #lista 162
+                    tag(:FeatureValue, attachment.file_md5)
+                  end
+
+                  comment 'wielkość pliku w bajtach'
+                  tag(:ResourceVersionFeature) do
+                    tag(:ResourceVersionFeatureType, Elibri::ONIX::Dict::Release_3_0::ResourceVersionFeatureType::SIZE_IN_BYTES)  #lista 162
+                    tag(:FeatureValue, attachment.file_size)
+                  end
+
                   tag(:ResourceLink, attachment.url_for_onix)
                   if attachment.respond_to?(:updated_at)
                     tag(:ContentDate) do
@@ -1173,7 +1186,7 @@ module Elibri
                   comment 'wielkość pliku w bajtach'
                   tag(:ResourceVersionFeature) do
                     tag(:ResourceVersionFeatureType, Elibri::ONIX::Dict::Release_3_0::ResourceVersionFeatureType::SIZE_IN_BYTES)  #lista 162
-                    tag(:FeatureValue, excerpt.stored_file_size)
+                    tag(:FeatureValue, excerpt.file_size)
                   end
 
                   tag(:ResourceLink, excerpt.public_url)
@@ -1359,7 +1372,7 @@ module Elibri
                       end
                       tag("ResourceFileFeature") do
                         tag("ResourceFileFeatureType", Elibri::ONIX::Dict::Release_3_0::ResourceFileFeatureType::EXACT_FILE_SIZE)
-                        tag("ResourceFileFeatureValue", master.stored_file_size)
+                        tag("ResourceFileFeatureValue", master.file_size)
                       end
 
                       tag("ResourceFileFeature") do
@@ -1418,7 +1431,7 @@ module Elibri
               if product.excerpts.size > 0
                  tag("elibri:excerpts") do
                    product.excerpts.each do |excerpt|
-                     tag("elibri:excerpt", excerpt.public_url, :md5 => excerpt.file_md5, :file_size => excerpt.stored_file_size,
+                     tag("elibri:excerpt", excerpt.public_url, :md5 => excerpt.file_md5, :file_size => excerpt.file_size,
                                            :file_type => excerpt.file_type, :updated_at => excerpt.stored_updated_at.to_datetime.xmlschema, :id => excerpt.id)
                    end
                  end
@@ -1426,7 +1439,7 @@ module Elibri
               if product.masters.size > 0
                 tag("elibri:masters") do
                   product.masters.each do |sf|
-                    tag("elibri:master", :id => sf.id, :md5 => sf.file_md5, :file_size => sf.stored_file_size,
+                    tag("elibri:master", :id => sf.id, :md5 => sf.file_md5, :file_size => sf.file_size,
                                          :file_type => sf.file_type, :updated_at => sf.stored_updated_at.to_datetime.xmlschema)
                   end
                 end
