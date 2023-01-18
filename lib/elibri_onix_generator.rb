@@ -595,12 +595,12 @@ module Elibri
           end
 
           if product.respond_to?(:epub_sale_not_restricted?) && product.respond_to?(:epub_sale_restricted_to)
-            if !product.epub_sale_not_restricted? && product.epub_sale_restricted_to
+            if !product.epub_sale_not_restricted? && product.epub_sale_restricted_to_for_onix
               tag(:PublishingDate) do
                 comment "Jeśli 13 - to data po której książka zostanie wycofana z rynku"
                 tag(:PublishingDateRole, Elibri::ONIX::Dict::Release_3_0::PublishingDateRole::OUT_OF_PRINT_DATE) #lista 163
                 tag(:DateFormat, Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDD) if @elibri_onix_dialect == '3.0.1'
-                tag(:Date, product.epub_sale_restricted_to.strftime("%Y%m%d"), dateformat: Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDD)
+                tag(:Date, product.epub_sale_restricted_to_for_onix.strftime("%Y%m%d"), dateformat: Elibri::ONIX::Dict::Release_3_0::DateFormat::YYYYMMDD)
               end
             end
           end
@@ -1417,10 +1417,10 @@ module Elibri
             tag("elibri:AdditionalInfo", product.additional_info) if field_exists?(product, :additional_info)
             tag("elibri:preview_exists", product.preview_exists?.to_s) if product.respond_to?(:preview_exists?)
             if product.respond_to?(:digital?) && product.digital?
-              if product.epub_sale_not_restricted? || product.epub_sale_restricted_to.nil?
+              if product.epub_sale_not_restricted? || product.epub_sale_restricted_to_for_onix.nil?
                 tag("elibri:SaleNotRestricted")
               else
-                tag("elibri:SaleRestrictedTo", product.epub_sale_restricted_to.strftime("%Y%m%d"))
+                tag("elibri:SaleRestrictedTo", product.epub_sale_restricted_to_for_onix.strftime("%Y%m%d"))
               end
             end
             if product.respond_to?(:isbn) && product.isbn
