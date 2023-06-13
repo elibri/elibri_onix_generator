@@ -404,9 +404,11 @@ module Elibri
           end
 
           if product.respond_to?(:digital?) && product.digital?
-            if field_exists?(product, :epub_technical_protection_onix_code)
+            if field_exists?(product, :epub_technical_protection_onix_codes)
               comment_dictionary "Zabezpieczenie", :EpubTechnicalProtection, :indent => 10, :kind => :onix_epub_details
-              tag(:EpubTechnicalProtection, product.epub_technical_protection_onix_code)
+              product.epub_technical_protection_onix_codes.each do |code|
+                tag(:EpubTechnicalProtection, code)
+              end
             end
           end
 
