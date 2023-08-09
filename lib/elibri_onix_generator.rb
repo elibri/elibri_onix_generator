@@ -811,7 +811,7 @@ module Elibri
 
               tag(:Subject) do
                 tag(:SubjectSchemeIdentifier, scheme_id)
-                tag(:SubjectSchemeVersion, "1.3")
+                tag(:SubjectSchemeVersion, Elibri::ONIX::ThemaVersion)
                 tag(:SubjectCode, code)
                 tag(:SubjectHeadingText, text) if text && text.size > 0
               end
