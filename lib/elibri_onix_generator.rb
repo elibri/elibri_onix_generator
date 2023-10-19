@@ -1109,7 +1109,7 @@ module Elibri
               options = {}
               unless @skip_sourcename_and_timestamp
                 options[:sourcename] = "resourceid:#{attachment.id}" if attachment.respond_to?(:id)
-                options[:datestamp] = attachment.updated_at.to_s(:onix) if attachment.respond_to?(:updated_at)
+                options[:datestamp] = attachment.updated_at.utc.to_s(:onix) if attachment.respond_to?(:updated_at)
               end
               tag(:SupportingResource, options) do
                 comment_dictionary 'Typ załącznika', :ResourceContentType, :indent => 12, :kind => :onix_supporting_resources
