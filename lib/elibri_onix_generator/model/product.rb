@@ -19,7 +19,7 @@ module Elibri
                       :cover_type_name, :price_amount, :series_name, :vat, :pkwiu
 
         def to_xml
-          OnixGenerator.new(self, {}).to_s
+          OnixGenerator.new(self, {}).onix
         end
 
 
@@ -27,9 +27,9 @@ module Elibri
           true
         end
 
-        def series_membership_kind 
+        def series_membership_kind
           if series_name && series_name.size > 0
-            "user_given" 
+            "user_given"
           else
             "no_series"
           end
@@ -79,7 +79,7 @@ module Elibri
 
         def attachments
           if cover_url
-            [OpenStruct.new({"onix_resource_mode" => "03", "attachment_type_code" => "01", 
+            [OpenStruct.new({"onix_resource_mode" => "03", "attachment_type_code" => "01",
                              "url_for_onix" => cover_url, "file" => OpenStruct.new({ "url" => cover_url })})]
           else
             []
@@ -125,7 +125,7 @@ module Elibri
           attributes.each do |key, value|
             self.send("#{key}=", value)
           end
-        end  
+        end
       end
     end
   end
