@@ -105,10 +105,11 @@ module Elibri
 
 
       def initialize(products, options = {})
-        options[:export_headers] =  true unless options.has_key?(:export_headers)
-        options[:elibri_onix_dialect] = DEFAULT_DIALECT unless options.has_key?(:elibri_onix_dialect)
-        options[:comments] = false unless options.has_key?(:comments)
-        options[:xml_variant] = OpenStruct.new(blank?: false,
+        @options = options
+        @options[:export_headers] =  true unless options.has_key?(:export_headers)
+        @options[:elibri_onix_dialect] = DEFAULT_DIALECT unless options.has_key?(:elibri_onix_dialect)
+        @options[:comments] = false unless options.has_key?(:comments)
+        @options[:xml_variant] = OpenStruct.new(blank?: false,
                                                includes_basic_meta?: true,
                                                includes_other_texts?: true,
                                                includes_media_files?: true,
@@ -132,19 +133,24 @@ module Elibri
         @skip_sourcename_and_timestamp = !!options[:skip_sourcename_and_timestamp]
         @sender_name = options[:sender_name]
         @lan = options[:lan] || "pol"
+      end
 
+      def onix
         # W testach często nie chcę żadnych nagłówków - interesuje mnie tylko tag <Product>
-        if options[:export_headers]
+        if @options[:export_headers]
           self.class.render_header(@builder, elibri_onix_dialect: @elibri_onix_dialect, pure_onix: @pure_onix || !@xml_variant.includes_basic_meta?, sender_name: @sender_name) do
             render_products!
           end
         else
           render_products!
         end
+        @out.join
       end
 
-
-      def to_s
+      def elibri_extensions
+        @products.each do |product|
+          export_elibri_extensions!(product)
+        end
         @out.join
       end
 
